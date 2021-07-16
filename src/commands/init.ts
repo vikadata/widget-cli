@@ -7,6 +7,7 @@ import { exec } from 'child_process';
 import axios from 'axios';
 import { IApiWrapper } from '../interface/api';
 import { generateRandomId } from '../utils/id';
+import { hostPrompt, tokenPrompt } from '../utils/prompt';
 
 const templateDir = path.resolve(__dirname, '../template/developer_template');
 
@@ -99,7 +100,6 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     if (!result.data.success) {
       this.error(result.data.message, { code: String(result.data.code), exit: 1 });
     } else {
-      this.log(`Server Response: ${JSON.stringify(result.data)}`);
       this.log('Successful create widgetPackage from server')
     }
   }
@@ -114,19 +114,12 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       }
     }
 
-    if (!token) {
-      token = await cli.prompt('Your API Token', { required: true, type: 'mask' });
-    }
+    token = await tokenPrompt(token);
+
+    host = await hostPrompt(host);
 
     if (!spaceId) {
       spaceId = await cli.prompt('Your target spaceId', { required: true });
-    }
-
-    if (!host) {
-      host = await cli.prompt('Host of the server', { default: 'https://vika.cn' });
-    }
-    if (host && host[host?.length - 1] === '/') {
-      host = host?.slice(0, -1);
     }
 
     if (!name) {
