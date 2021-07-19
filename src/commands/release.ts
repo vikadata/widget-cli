@@ -116,8 +116,8 @@ Succeed!
     const shaSum = await this.getShaSum(path.join(rootDir, outputFile))
 
     // provide graceful log
-    this.log()
     this.log(chalk.greenBright(`📦  ${outputName}`))
+    this.log()
     this.log(chalk.yellowBright('=== Tarball Contents ==='))
     let unpackedSize = 0
     files.forEach(file => {
