@@ -1,12 +1,12 @@
 import {Command, flags} from '@oclif/command'
-import * as path from 'path';
-import * as fse from 'fs-extra';
-import axios from 'axios';
+import * as path from 'path'
+import * as fse from 'fs-extra'
+import axios from 'axios'
 import * as YAML from 'yaml'
-import { IApiWrapper } from '../interface/api';
-import { hostPrompt, tokenPrompt } from '../utils/prompt';
-import { findWidgetRootDir } from '../utils/root_dir';
-import Config from '../config';
+import {IApiWrapper} from '../interface/api'
+import {hostPrompt, tokenPrompt} from '../utils/prompt'
+import {findWidgetRootDir} from '../utils/root_dir'
+import Config from '../config'
 
 export default class Auth extends Command {
   static description = '使用 API Token 登录到一个空间站下'
@@ -18,53 +18,53 @@ export default class Auth extends Command {
   ]
 
   static flags = {
-    host: flags.string({char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
+    host: flags.string({char: 'h', description: 'Specifies the host of the server, such as https://vika.cn'}),
   }
 
   static args = [
-    {name: 'token', description: 'Your API Token' },
+    {name: 'token', description: 'Your API Token'},
   ]
 
   async authorization(host: string, token: string, packageId?: string) {
     const result = await axios.post<IApiWrapper>('/widget/package/auth', {
-      packageId
+      packageId,
     }, {
       baseURL: `${host}/api/v1`,
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    });
+    })
 
     if (!result.data.success) {
-      this.error(result.data.message, { code: String(result.data.code), exit: 1 });
+      this.error(result.data.message, {code: String(result.data.code), exit: 1})
     }
   }
 
   updateYamlFile(rootDir: string, token: string, host: string) {
-    const yamlPath = path.resolve(rootDir, Config.widgetYamlFileName);
-    let file: string | null = null;
+    const yamlPath = path.resolve(rootDir, Config.widgetYamlFileName)
+    let file: string | null = null
     try {
       // file not exist will throw an error
       file = fse.readFileSync(yamlPath, 'utf8')
-    } catch (e) {
+    } catch (error) {
     }
 
-    const yaml = file ? YAML.parse(file) : {};
+    const yaml = file ? YAML.parse(file) : {}
 
-    yaml.token = token;
-    yaml.host = host;
+    yaml.token = token
+    yaml.host = host
 
-    const fileToSave = YAML.stringify(yaml);
+    const fileToSave = YAML.stringify(yaml)
     fse.outputFileSync(path.resolve(rootDir, Config.widgetYamlFileName), fileToSave)
   }
 
   async run() {
-    let {args: { token }, flags: { host }} = this.parse(Auth)
+    let {args: {token}, flags: {host}} = this.parse(Auth)
 
-    host = await hostPrompt(host);
-    token = await tokenPrompt(token);
+    host = await hostPrompt(host)
+    token = await tokenPrompt(token)
 
-    const rootDir = findWidgetRootDir();
+    const rootDir = findWidgetRootDir()
 
     if (!rootDir) {
       this.error(`Can not find widget project root (The directory where where ${Config.widgetConfigFileName} is located)`)
@@ -72,8 +72,8 @@ export default class Auth extends Command {
 
     await this.authorization(host, token)
 
-    this.updateYamlFile(rootDir, host, token);
+    this.updateYamlFile(rootDir, host, token)
 
-    this.log('Authorize succeed!');
+    this.log('Authorize succeed!')
   }
 }
