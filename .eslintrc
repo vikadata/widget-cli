@@ -4,6 +4,7 @@
     "oclif-typescript"
   ],
   "rules": {
-    "prefer-const": "off"
+    "prefer-const": "off",
+    "unicorn/filename-case": ["error", {"case": "snakeCase"}]
   }
 }

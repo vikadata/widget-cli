@@ -1,11 +1,12 @@
-/* eslint-disable */
-const chalk = require('chalk');
-const config = require('./widget.config');
-const webpack = require('webpack');
-module.exports = {
+import * as path  from 'path'
+import * as webpack  from 'webpack'
+
+export const getWebpackConfig = ({dir, config, onSucceed}: {dir: string; config: any; onSucceed: () => void}): webpack.Configuration => ({
+  context: path.resolve(__dirname),
   entry: {
-    'bundle': config.entry,
+    bundle: path.join(dir, config.entry),
   },
+  mode: 'development',
   module: {
     rules: [
       {
@@ -13,19 +14,19 @@ module.exports = {
         use: [{
           loader: 'ts-loader',
           options: {
-            transpileOnly: true
-          }
+            transpileOnly: true,
+          },
         }],
         exclude: /node_modules/,
       },
       {
         test: /\.css$/i,
-        use: ["style-loader", "css-loader"],
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },
   optimization: {
-    minimize: false
+    minimize: false,
   },
   externals: {
     react: {
@@ -58,24 +59,21 @@ module.exports = {
   },
   output: {
     libraryTarget: 'umd',
-    filename: './dist/packed/widget_bundle.js',
-    path: __dirname,
+    filename: 'widget_bundle.js',
+    path: path.join(dir, './dist/packed/'),
   },
   plugins: [
     {
-      apply: (compiler) => {
-        compiler.hooks.afterEmit.tap('MyPlugin', (compilation) => {
+      apply: (compiler: any) => {
+        compiler.hooks.afterEmit.tap('CompileSucceed', () => {
           setTimeout(() => {
-            console.log(chalk.cyanBright('************************'));
-            console.log(chalk.yellowBright('复制以下地址粘贴到小组件容器中：'));
-            console.log(chalk.yellowBright(`http://localhost:9000/packed/widget_bundle.js`));
-            console.log(chalk.cyanBright('************************'));
+            onSucceed()
           })
-        });
-      }
+        })
+      },
     },
     new webpack.DefinePlugin({
       'process.env.WIDGET_PACKAGE_ID': `'${config.packageId || 'wpkDeveloper'}'`,
-    })
-  ]
-};
+    }),
+  ],
+})

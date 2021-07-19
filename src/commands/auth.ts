@@ -66,10 +66,6 @@ export default class Auth extends Command {
 
     const rootDir = findWidgetRootDir()
 
-    if (!rootDir) {
-      this.error(`Can not find widget project root (The directory where where ${Config.widgetConfigFileName} is located)`)
-    }
-
     await this.authorization(host, token)
 
     this.updateYamlFile(rootDir, host, token)
