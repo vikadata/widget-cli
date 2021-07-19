@@ -6,7 +6,7 @@ import * as path from 'path'
 import * as express from 'express'
 import {getWebpackConfig} from '../webpack.config'
 import {findWidgetRootDir} from '../utils/root_dir'
-import Config from '../config'
+import {getWidgetConfig} from '../utils/project'
 
 export default class Start extends Command {
   static description = 'start current widget project in develop mode'
@@ -66,7 +66,7 @@ Compiling...
   async run() {
     const {flags: {port, debug}} = this.parse(Start)
     const projectDir = findWidgetRootDir()
-    const widgetConfig = require(path.join(projectDir, Config.widgetConfigFileName))
+    const widgetConfig = getWidgetConfig()
 
     const config = getWebpackConfig({dir: projectDir, config: widgetConfig, onSucceed: () => {
       this.log(chalk.cyanBright('************************'))

@@ -9,11 +9,11 @@ import {findWidgetRootDir} from '../utils/root_dir'
 import Config from '../config'
 
 export default class Auth extends Command {
-  static description = '使用 API Token 登录到一个空间站下'
+  static description = 'Login authentication, and cache the API Token'
 
   static examples = [
     `$ widget-cli auth [apiToken] --host [host]
-登录成功！
+Succeed!
 `,
   ]
 
