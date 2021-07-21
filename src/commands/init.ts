@@ -1,13 +1,16 @@
 import {Command, flags} from '@oclif/command'
-import * as path from 'path'
-import cli from 'cli-ux'
-import * as fse from 'fs-extra'
-import {exec} from 'child_process'
-
 import axios from 'axios'
+import cli from 'cli-ux'
+import {exec} from 'child_process'
+import * as path from 'path'
+import * as fse from 'fs-extra'
+import Config from '../config'
 import {IApiWrapper} from '../interface/api'
 import {generateRandomId} from '../utils/id'
 import {hostPrompt, tokenPrompt} from '../utils/prompt'
+import {IWidgetConfig} from '../interface/widget_config'
+import {kebab2camel} from '../utils/string'
+import {updatePrivateConfig} from '../utils/project'
 
 const templateDir = path.resolve(__dirname, '../template/developer_template')
 
@@ -78,7 +81,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       authorName?: string; authorLink?: string; authorEmail?: string;
     }
   ) {
-    const result = await axios.post<IApiWrapper>('/widget/package/create', {
+    const result = await axios.post<IApiWrapper<{packageId: string}>>('/widget/package/create', {
       spaceId,
       packageId,
       packageType,
@@ -98,10 +101,11 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     })
 
     if (result.data.success) {
-      this.log('Successful create widgetPackage from server')
+      this.log(`Successful create widgetPackage from server, ${JSON.stringify(result.data)}`)
     } else {
-      this.error(result.data.message, {code: String(result.data.code), exit: 1})
+      this.error(result.data.message, {code: String(result.data.code)})
     }
+    return result.data.data
   }
 
   async run() {
@@ -123,7 +127,10 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     }
 
     if (!name) {
-      name = await cli.prompt('Name your widget and project', {default: 'my-widget'})
+      name = await cli.prompt('Name your widget and project (no white space in name)', {default: 'my-widget', required: true})
+      if (!/^[a-z0-9-_]*$/i.test(name!)) {
+        this.error('name should only contain alphabet/-/_')
+      }
     }
 
     if (!authorName) {
@@ -138,21 +145,38 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       authorEmail = await cli.prompt('Author Email')
     }
 
-    const destDir = path.resolve(process.cwd(), `./${name}`)
+    const rootDir = path.resolve(process.cwd(), `./${name}`)
 
-    fse.copySync(templateDir, destDir)
-
+    let result
     try {
-      await this.createWidgetPackage({
+      result = await this.createWidgetPackage({
         token, spaceId, host: host!, name: name!, authorName, authorEmail, authorLink,
         releaseType: ReleaseType.Space,
         packageType: official ? PackageType.Official : PackageType.Custom,
       })
     } catch (error) {
       // remove destDir when fail to init widget package
-      fse.removeSync(destDir)
+      fse.removeSync(rootDir)
       throw error
     }
+
+    fse.copySync(templateDir, rootDir)
+
+    const widgetConfig = require(path.join(rootDir, Config.widgetConfigFileName)) as IWidgetConfig
+    const nameCamelized = kebab2camel(name!)
+    const newWidgetConfig = {
+      ...widgetConfig,
+      packageId: result.packageId,
+      spaceId,
+      name: {'zh-CN': nameCamelized, 'en-US': nameCamelized},
+      authorName,
+      authorLink,
+      authorEmail,
+      description: {'zh-CN': `${nameCamelized} 的描述`, 'en-US': `${nameCamelized} description`},
+    }
+    fse.writeFileSync(path.join(rootDir, Config.widgetConfigFileName), JSON.stringify(newWidgetConfig, null, 2))
+
+    updatePrivateConfig({host, token}, rootDir)
 
     // this.gitInit(destDir);
     // this.install(destDir);

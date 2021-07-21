@@ -1,12 +1,8 @@
 import {Command, flags} from '@oclif/command'
-import * as path from 'path'
-import * as fse from 'fs-extra'
 import axios from 'axios'
-import * as YAML from 'yaml'
 import {IApiWrapper} from '../interface/api'
 import {hostPrompt, tokenPrompt} from '../utils/prompt'
-import {findWidgetRootDir} from '../utils/root_dir'
-import Config from '../config'
+import {updatePrivateConfig} from '../utils/project'
 
 export default class Auth extends Command {
   static description = 'Login authentication, and cache the API Token'
@@ -40,35 +36,15 @@ Succeed!
     }
   }
 
-  updateYamlFile(rootDir: string, token: string, host: string) {
-    const yamlPath = path.resolve(rootDir, Config.widgetYamlFileName)
-    let file: string | null = null
-    try {
-      // file not exist will throw an error
-      file = fse.readFileSync(yamlPath, 'utf8')
-    } catch (error) {
-    }
-
-    const yaml = file ? YAML.parse(file) : {}
-
-    yaml.token = token
-    yaml.host = host
-
-    const fileToSave = YAML.stringify(yaml)
-    fse.outputFileSync(path.resolve(rootDir, Config.widgetYamlFileName), fileToSave)
-  }
-
   async run() {
     let {args: {token}, flags: {host}} = this.parse(Auth)
 
     host = await hostPrompt(host)
     token = await tokenPrompt(token)
 
-    const rootDir = findWidgetRootDir()
-
     await this.authorization(host, token)
 
-    this.updateYamlFile(rootDir, host, token)
+    updatePrivateConfig({host, token})
 
     this.log('Authorize succeed!')
   }

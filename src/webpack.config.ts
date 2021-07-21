@@ -1,12 +1,15 @@
 import * as path  from 'path'
 import * as webpack  from 'webpack'
+import Config from './config'
 
-export const getWebpackConfig = ({dir, config, onSucceed}: {dir: string; config: any; onSucceed: () => void}): webpack.Configuration => ({
+export const getWebpackConfig = ({dir, mode, config, onSucceed}: {dir: string; mode: 'dev' | 'prod'; config: any; onSucceed: () => void}): webpack.Configuration => ({
   context: path.resolve(__dirname),
   entry: {
     bundle: path.join(dir, config.entry),
   },
-  mode: 'development',
+  mode: mode === 'dev' ? 'development' : 'production',
+  watch: mode === 'dev',
+  devtool: mode === 'dev' ? 'source-map' : undefined,
   module: {
     rules: [
       {
@@ -24,9 +27,6 @@ export const getWebpackConfig = ({dir, config, onSucceed}: {dir: string; config:
         use: ['style-loader', 'css-loader'],
       },
     ],
-  },
-  optimization: {
-    minimize: false,
   },
   externals: {
     react: {
@@ -59,8 +59,8 @@ export const getWebpackConfig = ({dir, config, onSucceed}: {dir: string; config:
   },
   output: {
     libraryTarget: 'umd',
-    filename: 'widget_bundle.js',
-    path: path.join(dir, './dist/packed/'),
+    filename: mode === 'dev' ? Config.releaseCodeName : Config.releaseCodeProdName,
+    path: path.join(dir, Config.releaseCodePath),
   },
   plugins: [
     {
