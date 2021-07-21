@@ -10,7 +10,7 @@ export async function hostPrompt(host?: string): Promise<string> {
   return host!;
 }
 
-export async function tokenPrompt(token: string): Promise<string> {
+export async function tokenPrompt(token?: string): Promise<string> {
   if (!token) {
     token = await cli.prompt('Your API Token', { required: true, type: 'mask' });
   }
