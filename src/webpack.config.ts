@@ -1,8 +1,11 @@
-import * as path  from 'path'
-import * as webpack  from 'webpack'
-import Config from './config'
+import * as path from 'path';
+import * as webpack from 'webpack';
+import Config from './config';
 
-export const getWebpackConfig = ({dir, mode, config, onSucceed}: {dir: string; mode: 'dev' | 'prod'; config: any; onSucceed: () => void}): webpack.Configuration => ({
+export const getWebpackConfig = (
+  { dir, mode, config, onSucceed }:
+  {dir: string; mode: 'dev' | 'prod'; config: any; onSucceed: () => void}
+): webpack.Configuration => ({
   context: path.resolve(__dirname),
   entry: {
     bundle: path.join(dir, config.entry),
@@ -67,13 +70,13 @@ export const getWebpackConfig = ({dir, mode, config, onSucceed}: {dir: string; m
       apply: (compiler: any) => {
         compiler.hooks.afterEmit.tap('CompileSucceed', () => {
           setTimeout(() => {
-            onSucceed()
-          })
-        })
+            onSucceed();
+          });
+        });
       },
     },
     new webpack.DefinePlugin({
       'process.env.WIDGET_PACKAGE_ID': `'${config.packageId || 'wpkDeveloper'}'`,
     }),
   ],
-})
+});

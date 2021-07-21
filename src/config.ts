@@ -4,4 +4,4 @@ export default {
   releaseCodeName: 'widget_bundle.js',
   releaseCodeProdName: 'widget_bundle.min.js',
   releaseCodePath: './dist/packed/',
-}
+};
