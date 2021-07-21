@@ -1,0 +1,28 @@
+{
+
+  "packageId": "wpkDeveloper",
+
+  "spaceId": "spcMyspace",
+
+  "entry": "./src/index.ts",
+
+  "name": {
+    "zh-CN": "我的小组件",
+    "en-US": "MyWidget"
+  },
+
+  "icon": "./package_icon.png",
+
+  "cover": "./cover.png",
+
+  "authorName": "vika",
+
+  "authorIcon": "./author_icon.png",
+
+  "authorLink": "https://developer.vika.cn",
+
+  "description": {
+    "zh_CN": "可以将表格内的数据可视化为柱状图、条形图、折线图、散点图、饼状图等展示形式。你可以通过图表直观地了解数据的概览情况，方便你做决策分析和会议汇报。",
+    "en_US": "The data in the table can be visualized into display forms such as bar graphs, bar graphs, line graphs, scatter graphs, and pie graphs. You can intuitively understand the overview of the data through the chart, which is convenient for you to make decision analysis and meeting reports."
+  }
+}
