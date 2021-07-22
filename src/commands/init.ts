@@ -4,6 +4,7 @@ import cli from 'cli-ux';
 import { exec } from 'child_process';
 import * as path from 'path';
 import * as fse from 'fs-extra';
+import * as chalk from 'chalk';
 import Config from '../config';
 import { IApiWrapper } from '../interface/api';
 import { generateRandomId } from '../utils/id';
@@ -81,7 +82,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       authorName?: string; authorLink?: string; authorEmail?: string;
     }
   ) {
-    const result = await axios.post<IApiWrapper<{packageId: string}>>('/widget/package/create', {
+    const data = {
       spaceId,
       packageId,
       packageType,
@@ -89,11 +90,13 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       authorName,
       authorLink,
       authorEmail,
-      name: {
+      name: JSON.stringify({
         'en-US': name,
         'zh-CN': name,
-      },
-    }, {
+      }),
+    };
+    this.log(JSON.stringify(data, null, 2));
+    const result = await axios.post<IApiWrapper<{packageId: string}>>('/widget/package/create', data, {
       baseURL: `${host}/api/v1`,
       headers: {
         Authorization: `Bearer ${token}`,
@@ -180,6 +183,6 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
 
     // this.gitInit(destDir);
     // this.install(destDir);
-    this.log(`your widget: ${name} is successfully created, cd ./${name} go check!`);
+    this.log(chalk.greenBright(`your widget: ${name} is successfully created, cd ./${name} go check!`));
   }
 }

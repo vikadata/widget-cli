@@ -26,6 +26,7 @@ export async function uploadFile(filePath: string): Promise<IApiWrapper<{url: st
     headers: {
       'Content-Type': 'multipart/form-data',
       Authorization: 'Bearer ' + token,
+      ...form.getHeaders()
     },
   }).then(res => res.data);
 }

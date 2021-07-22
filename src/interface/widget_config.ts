@@ -21,6 +21,8 @@ export interface IWidgetConfig {
   authorIcon: string;
   /** [可选] 作者地址，点击作者图标后跳转 */
   authorLink: string;
+  /** [可选] 作者 邮件地址 */
+  authorEmail: string;
   /** 小组件描述，显示在小组件安装界面 */
   description: {[key: string]: string};
 }

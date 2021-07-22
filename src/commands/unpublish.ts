@@ -87,6 +87,6 @@ Succeed!
 
     updatePrivateConfig({ host, token });
 
-    this.log('Unpublish succeed!');
+    this.log(chalk.greenBright('Unpublish succeed!'));
   }
 }

@@ -9,6 +9,7 @@ import * as archiver from 'archiver';
 import * as crypto from 'crypto';
 import * as chalk from 'chalk';
 import * as semver from 'semver';
+import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
 import { getName, getPrivateConfig, getVersion, getWidgetConfig, setPackageJson, startCompile } from '../utils/project';
 import { readableFileSize, uploadFileVika } from '../utils/file';
@@ -28,6 +29,7 @@ interface IReleaseParams {
   authorName: string;
   authorIcon: string;
   authorLink: string;
+  authorEmail: string;
   description: { [key: string]: string }; // { 'zh-CN': '小组件', 'en-US': 'widget' }
 	releaseCodeBundle: string;
 	sourceCodeBundle: string;
@@ -132,19 +134,49 @@ Succeed!
     });
   }
 
-  async releaseWidget(params: IReleaseParams) {
+  async releaseWidget(form: FormData) {
     const { host, token } = getPrivateConfig();
-    this.log(JSON.stringify(params, null, 2));
-    const result = await axios.post<IApiWrapper>('/widget/package/release', params, {
+    const result = await axios.post<IApiWrapper>('/widget/package/release', form, {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       baseURL: `${host}/api/v1`,
       headers: {
+        // 'Content-Type': `multipart/form-data; boundary=${formData.getBoundary()}`,
         Authorization: `Bearer ${token}`,
+        ...form.getHeaders()
+      },
+      onUploadProgress: (event) => {
+        console.log('call me');
+        console.log(event);
       },
     });
-
     if (!result.data.success) {
       this.error(result.data.message, { code: String(result.data.code), exit: 1 });
     }
+  }
+
+  buildFormData(params: IReleaseParams) {
+    const form = new FormData();
+    const rootDir = findWidgetRootDir();
+    const files = ['icon', 'cover', 'authorIcon', 'releaseCodeBundle', 'sourceCodeBundle'];
+    const jsonString = ['name', 'description'];
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (files.includes(key)) {
+        const file = fse.createReadStream(path.join(rootDir, value));
+        form.append(key, file as any);
+        return;
+      }
+
+      if (jsonString.includes(key)) {
+        form.append(key, JSON.stringify(value));
+        return;
+      }
+
+      form.append(key, value);
+    });
+
+    return form;
   }
 
   async uploadResources(filePath: string) {
@@ -209,17 +241,21 @@ Succeed!
     const outputFile = `${outputName}.zip`;
     const outputFilePath = path.join(rootDir, outputFile);
     // use this to unzip the output zip package
-    const secretKey = generateRandomString(128);
+    const secretKey = generateRandomString(64);
     // provide graceful log, inspired by npm pack
     this.log(chalk.greenBright(`📦  ${outputName}`));
 
     // pack sourceCode to zip
+    cli.action.start('packing source code');
     await this.pack(rootDir, outputFile, secretKey, files);
+    cli.action.stop();
     // build production code for release
+    cli.action.start('compiling');
     await this.compile();
     const packageSize = fse.statSync(outputFilePath).size;
     // for check
     const shaSum = await this.getShaSum(outputFilePath);
+    cli.action.stop();
 
     this.log();
     this.log(chalk.yellowBright('=== Package Contents ==='));
@@ -241,32 +277,29 @@ Succeed!
     this.log(`total files:   ${files.length}`);
     this.log(`secretKey:     ${secretKey}`);
 
-    const { packageId, spaceId, icon, cover, name, description, authorName, authorIcon, authorLink } = getWidgetConfig();
-    const iconPath = path.join(rootDir, icon);
-    const coverPath = path.join(rootDir, cover);
+    const { packageId, spaceId, icon, cover, name, description, authorName, authorIcon, authorLink, authorEmail } = getWidgetConfig();
     // upload resources and get token
     this.log();
-    this.log(chalk.yellowBright('=== Uploading Details ==='));
-    const sourceCodeBundle = await this.uploadResources(outputFilePath);
-    const releaseCodeBundle = await this.uploadResources(path.join(rootDir, Config.releaseCodePath, Config.releaseCodeProdName));
-    const iconToken = await this.uploadResources(iconPath);
-    const coverToken = await this.uploadResources(coverPath);
-    const authorIconToken = await this.uploadResources(authorIcon);
-    await this.releaseWidget({
+    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
+    const formData = this.buildFormData({
       spaceId,
       packageId,
-      icon: iconToken,
-      cover: coverToken,
+      icon,
+      cover,
       version,
       name,
       authorName,
-      authorIcon: authorIconToken,
+      authorIcon,
       authorLink,
+      authorEmail,
       description,
       secretKey,
-      sourceCodeBundle,
+      sourceCodeBundle: outputFile,
       releaseCodeBundle,
     });
-    this.log(`successful release widget ${outputName}`);
+    cli.action.start('uploading');
+    await this.releaseWidget(formData);
+    cli.action.stop();
+    this.log(chalk.greenBright(`successful release widget ${outputName}`));
   }
 }

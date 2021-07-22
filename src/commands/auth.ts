@@ -1,5 +1,6 @@
 import { Command, flags } from '@oclif/command';
 import axios from 'axios';
+import * as chalk from 'chalk';
 import { IApiWrapper } from '../interface/api';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import { updatePrivateConfig } from '../utils/project';
@@ -46,6 +47,6 @@ Succeed!
 
     updatePrivateConfig({ host, token });
 
-    this.log('Authorize succeed!');
+    this.log(chalk.greenBright('Authorize succeed!'));
   }
 }
