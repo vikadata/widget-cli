@@ -72,7 +72,10 @@
     "bin": "widget-cli",
     "plugins": [
       "@oclif/plugin-help"
-    ]
+    ],
+    "hooks": {
+      "init": "./src/hooks/init"
+    }
   },
   "repository": "vikadata/widget-cli",
   "scripts": {
