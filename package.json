@@ -17,7 +17,6 @@
     "@types/gitignore-parser": "^0.0.0",
     "@types/glob": "^7.1.4",
     "@types/semver": "^7.3.7",
-    "@vikadata/vika": "^1.0.3",
     "archiver": "^5.3.0",
     "archiver-zip-encrypted": "^1.0.10",
     "axios": "^0.21.1",

@@ -12,7 +12,7 @@ import * as semver from 'semver';
 import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
 import { getName, getPrivateConfig, getVersion, getWidgetConfig, setPackageJson, startCompile } from '../utils/project';
-import { readableFileSize, uploadFileVika } from '../utils/file';
+import { readableFileSize } from '../utils/file';
 import { generateRandomString } from '../utils/id';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
@@ -177,18 +177,6 @@ Succeed!
     });
 
     return form;
-  }
-
-  async uploadResources(filePath: string) {
-    const rootDir = findWidgetRootDir();
-    const relativeFilePath = path.relative(rootDir, filePath);
-    cli.action.start(`uploading    ${relativeFilePath}`);
-    const packageUploadResult = await uploadFileVika(filePath);
-    if (!packageUploadResult.success) {
-      this.error(packageUploadResult.message, { code: String(packageUploadResult.code) });
-    }
-    cli.action.stop();
-    return packageUploadResult.data.token;
   }
 
   compile() {
