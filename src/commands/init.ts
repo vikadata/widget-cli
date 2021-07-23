@@ -153,7 +153,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     let result;
     try {
       result = await this.createWidgetPackage({
-        token, spaceId, host: host!, name: name!, authorName, authorEmail, authorLink,
+        packageId, token, spaceId, host: host!, name: name!, authorName, authorEmail, authorLink,
         releaseType: ReleaseType.Space,
         packageType: official ? PackageType.Official : PackageType.Custom,
       });
