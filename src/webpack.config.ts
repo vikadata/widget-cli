@@ -38,6 +38,12 @@ export const getWebpackConfig = (
       amd: 'react',
       root: '_React',
     },
+    'react-dom': {
+      commonjs: 'react-dom',
+      commonjs2: 'react-dom',
+      amd: 'react-dom',
+      root: '_ReactDom',
+    },
     '@vika/components': {
       commonjs: '@vika/components',
       commonjs2: '@vika/components',
@@ -56,6 +62,12 @@ export const getWebpackConfig = (
       amd: '@vika/widget-sdk',
       root: '_@vika/widget-sdk',
     },
+    '@vika/icons': {
+      commonjs: '@vika/widget-sdk',
+      commonjs2: '@vika/widget-sdk',
+      amd: '@vika/widget-sdk',
+      root: '_@vika/widget-sdk',
+    }
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
