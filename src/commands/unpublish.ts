@@ -4,7 +4,7 @@ import cli from 'cli-ux';
 import * as chalk from 'chalk';
 import { IApiWrapper } from '../interface/api';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
-import { getPrivateConfig, getWidgetConfig, updatePrivateConfig } from '../utils/project';
+import { getPrivateConfig, getWidgetConfig } from '../utils/project';
 
 export default class Unpublish extends Command {
   static description = 'Login authentication, and cache the API Token';
@@ -84,8 +84,6 @@ Succeed!
     }
 
     await this.unpublishWidget({ host, token, packageId });
-
-    updatePrivateConfig({ host, token });
 
     this.log(chalk.greenBright('Unpublish succeed!'));
   }
