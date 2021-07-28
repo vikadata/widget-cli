@@ -20,7 +20,7 @@ const hook: Hook<'init'> = async function(options) {
     console.log(chalk.redBright('Response Error:'));
     console.error({
       config: error.config,
-      responseData: error.response.data,
+      responseData: error.response?.data,
     });
     return Promise.reject(error);
   });
