@@ -16,14 +16,15 @@ Succeed!
 
   static flags = {
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
-    token: flags.string({ name: 'token', description: 'Your API Token' }),
+    token: flags.string({ char: 't', description: 'Your API Token' }),
+    global: flags.boolean({ char: 'g', description: 'Specify global widget package' }),
   };
 
   static args = [
     { name: 'packageId', description: 'The widget package you want to unpublish' },
   ];
 
-  async getPackagePackage({ host, token, packageId }: {host: string, token: string, packageId: string}) {
+  async getPackageRelease({ host, token, packageId }: {host: string, token: string, packageId: string}) {
     const result = await axios.get<IApiWrapper>(`/widget/package/release/history/${packageId}`, {
       baseURL: `${host}/api/v1`,
       headers: {
@@ -52,19 +53,17 @@ Succeed!
   }
 
   async run() {
-    let { args: { packageId, globalPackageId }, flags: { host, token }} = this.parse(ListRelease);
+    let { args: { packageId }, flags: { host, token, global }} = this.parse(ListRelease);
 
-    if (!packageId && !globalPackageId) {
-      const config = getPrivateConfig();
-      token = config.token!;
-      host = config.host!;
-      packageId = getWidgetConfig().packageId;
+    if (!packageId) {
+      const authConfig = getPrivateConfig();
+      const widgetConfig = getWidgetConfig();
+      token = authConfig.token!;
+      host = authConfig.host!;
+      packageId = global ? widgetConfig.globalPackageId : widgetConfig.packageId;
     } else {
       host = await hostPrompt();
       token = await tokenPrompt();
-      if (globalPackageId) {
-        packageId = globalPackageId;
-      }
     }
 
     const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
@@ -76,7 +75,7 @@ Succeed!
 
     this.log();
     this.log(chalk.yellowBright('=== Package Release Details ==='));
-    const packageRelease = await this.getPackagePackage({ host, token, packageId });
+    const packageRelease = await this.getPackageRelease({ host, token, packageId });
 
     Object.values<{[key: string]: string}>(packageRelease.data).forEach(item => {
       this.log(chalk.yellow(`Version ${item.version}`));
