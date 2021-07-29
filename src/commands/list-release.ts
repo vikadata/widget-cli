@@ -2,8 +2,7 @@ import { Command, flags } from '@oclif/command';
 import axios from 'axios';
 import * as chalk from 'chalk';
 import { IApiWrapper } from '../interface/api';
-import { hostPrompt, tokenPrompt } from '../utils/prompt';
-import { getPrivateConfig, getWidgetConfig } from '../utils/project';
+import { autoPrompt } from '../utils/prompt';
 
 export default class ListRelease extends Command {
   static description = 'Login authentication, and cache the API Token';
@@ -53,18 +52,7 @@ Succeed!
   }
 
   async run() {
-    let { args: { packageId }, flags: { host, token, global }} = this.parse(ListRelease);
-
-    if (!packageId) {
-      const authConfig = getPrivateConfig();
-      const widgetConfig = getWidgetConfig();
-      token = authConfig.token!;
-      host = authConfig.host!;
-      packageId = global ? widgetConfig.globalPackageId : widgetConfig.packageId;
-    } else {
-      host = await hostPrompt();
-      token = await tokenPrompt();
-    }
+    const { host, token, packageId } = await autoPrompt(this.parse(ListRelease));
 
     const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
 
