@@ -17,7 +17,7 @@ Succeed!
 
   static flags = {
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
-    token: flags.string({ name: 'token', description: 'Your API Token' }),
+    token: flags.string({ char: 't', description: 'Your API Token' }),
   };
 
   static args = [

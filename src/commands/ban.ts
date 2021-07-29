@@ -5,18 +5,15 @@ import * as chalk from 'chalk';
 import { IApiWrapper } from '../interface/api';
 import { autoPrompt } from '../utils/prompt';
 
-export default class Rollback extends Command {
-  static description = 'Rollback the widget package to the specified version';
+export default class Ban extends Command {
+  static description = 'Ban widget';
 
-  static examples = [
-    `$ widget-cli rollback [packageId] [version] --host [host] --token [token]
-Succeed!
-`,
-  ];
+  static hidden: true;
 
   static flags = {
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
+    unban: flags.boolean({ description: 'unban package' }),
     global: flags.boolean({ char: 'g', description: 'Specify global widget package' }),
   };
 
@@ -25,10 +22,10 @@ Succeed!
     { name: 'version', description: 'The version of the widget package you want to rollback' },
   ];
 
-  async rollbackRelease({ host, token, packageId, version }: {host: string, token: string, packageId: string, version: string}) {
-    const result = await axios.post<IApiWrapper>('/widget/package/rollback', {
+  async banRelease({ host, token, packageId, unban }: {host: string, token: string, packageId: string, unban: boolean}) {
+    const result = await axios.post<IApiWrapper>('/widget/package/ban', {
       packageId,
-      version,
+      unban: Boolean(unban),
     }, {
       baseURL: `${host}/api/v1`,
       headers: {
@@ -43,16 +40,20 @@ Succeed!
   }
 
   async run() {
-    const parsed = this.parse(Rollback);
-    let { args: { version }} = parsed;
+    const parsed = this.parse(Ban);
+    let { flags: { unban }} = parsed;
     const { host, token, packageId } = await autoPrompt(parsed);
 
-    if (!version) {
-      version = await cli.prompt('The version of the widget package you want to rollback', { required: true });
+    this.log(chalk.yellowBright(`Ban widget package: ${packageId}`));
+
+    const sure = await cli.confirm('Are you sure? Y/n');
+
+    if (!sure) {
+      this.log('canceled');
+      return;
     }
 
-    this.log(chalk.yellowBright(`Rollback version to ${version}`));
-    const data = await this.rollbackRelease({ host, token, packageId, version });
+    const data = await this.banRelease({ host, token, packageId, unban });
 
     this.log(chalk.greenBright(data.message));
   }
