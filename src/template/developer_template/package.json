@@ -1,7 +1,7 @@
 {
   "name": "my-vika-widget",
   "version": "0.0.0",
-  "description": "my vika widget",
+  "description": "a vika widget",
   "engines": {
     "node": ">=8.x"
   },

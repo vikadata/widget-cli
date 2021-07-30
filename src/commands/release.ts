@@ -11,16 +11,17 @@ import * as chalk from 'chalk';
 import * as semver from 'semver';
 import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
-import { getName, getPrivateConfig, getVersion, getWidgetConfig, setPackageJson, startCompile } from '../utils/project';
+import { getName, getPrivateConfig, getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
-import { generateRandomString } from '../utils/id';
+import { generateRandomId, generateRandomString } from '../utils/id';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
+import { PackageType, ReleaseType } from '../enum';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
 
 interface IReleaseParams {
-  packageId: string;
+  packageId?: string; // will create a new widget package when packageId is undefined
   version: string;
   spaceId: string;
   name: { [key: string]: string }; // { 'zh-CN': '小组件', 'en-US': 'widget' }
@@ -47,6 +48,7 @@ Succeed!
 
   static flags = {
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
+    global: flags.boolean({ char: 'g', description: 'Release this widget package to global' }),
   };
 
   getShaSum(file: string): Promise<string> {
@@ -155,6 +157,43 @@ Succeed!
     }
   }
 
+  async createWidgetPackage(
+    { name, packageId, spaceId, packageType, releaseType, authorName, authorLink, authorEmail }:
+    {
+      packageId?: string; name: {[key: string]: string};
+      spaceId: string; packageType: PackageType; releaseType: ReleaseType;
+      authorName?: string; authorLink?: string; authorEmail?: string;
+    }
+  ) {
+    const { host, token } = getPrivateConfig();
+
+    const data = {
+      spaceId,
+      packageId,
+      packageType,
+      releaseType,
+      authorName,
+      authorLink,
+      authorEmail,
+      name: JSON.stringify(name),
+    };
+
+    this.log(JSON.stringify(data, null, 2));
+    const result = await axios.post<IApiWrapper<{packageId: string}>>('/widget/package/create', data, {
+      baseURL: `${host}/api/v1`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (result.data.success) {
+      this.log('Successful create widgetPackage from server');
+    } else {
+      this.error(result.data.message, { code: String(result.data.code) });
+    }
+    return result.data.data;
+  }
+
   buildFormData(params: IReleaseParams) {
     const form = new FormData();
     const rootDir = findWidgetRootDir();
@@ -212,8 +251,24 @@ Succeed!
     return version;
   }
 
+  async getWidgetPackage(packageId: string) {
+    const { host, token } = getPrivateConfig();
+
+    const result = await axios.get<IApiWrapper<{packageType: PackageType}>>(`/widget/package/${packageId}`, {
+      baseURL: `${host}/api/v1`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!result.data.success) {
+      this.error(result.data.message, { code: String(result.data.code), exit: 1 });
+    }
+    return result.data;
+  }
+
   async run() {
-    let { flags: { version }} = this.parse(Release);
+    let { flags: { version, global: globalFlag }} = this.parse(Release);
 
     if (!version) {
       version = await cli.prompt('release version', { default: this.increaseVersion(), required: true });
@@ -265,13 +320,43 @@ Succeed!
     this.log(`total files:   ${files.length}`);
     this.log(`secretKey:     ${secretKey}`);
 
-    const { packageId, spaceId, icon, cover, name, description, authorName, authorIcon, authorLink, authorEmail } = getWidgetConfig();
+    let {
+      globalPackageId, packageId, spaceId, icon, cover, name,
+      description, authorName, authorIcon, authorLink, authorEmail,
+    } = getWidgetConfig();
     // upload resources and get token
     this.log();
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
+
+    // release a global package
+    if (globalFlag && !globalPackageId) {
+      const packageInfo = await this.getWidgetPackage(packageId);
+      let releaseWidgetType = 'Custom';
+      if (packageInfo.data.packageType === PackageType.Official) {
+        releaseWidgetType = 'Official';
+        this.log(chalk.yellowBright('Your project is a Official widget project'));
+      }
+      this.log(chalk.yellowBright(`You are releasing a new [global] [${releaseWidgetType}] widget!`));
+
+      const randomId = generateRandomId('wpk', 10);
+      globalPackageId = await cli.prompt(
+        'Specify the globalPackageId, Start with "wpk" followed by 10 alphanumeric or numbers',
+        { default: randomId },
+      );
+
+      const result = await this.createWidgetPackage({
+        packageId: globalPackageId, spaceId, name, authorName, authorEmail, authorLink,
+        releaseType: ReleaseType.Global,
+        packageType: packageInfo.data.packageType,
+      });
+      globalPackageId = result.packageId;
+      // save globalPackageId to config
+      setWidgetConfig('globalPackageId', globalPackageId);
+    }
+
     const formData = this.buildFormData({
       spaceId,
-      packageId,
+      packageId: globalFlag ? globalPackageId : packageId,
       icon,
       cover,
       version,

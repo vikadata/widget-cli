@@ -30,7 +30,7 @@ export async function tokenPrompt(token?: string): Promise<string> {
  */
 export async function autoPrompt(
   parsed: Parser.Output<any, any>
-):Promise<{ packageId: string, host: string, token: string }> {
+):Promise<{ packageId: string, host: string, token: string, global: boolean }> {
   let { args: { packageId }, flags: { host, token, global }} = parsed;
 
   if (!packageId) {
@@ -48,5 +48,6 @@ export async function autoPrompt(
     packageId,
     host,
     token,
+    global: Boolean(global),
   };
 }

@@ -3,8 +3,7 @@ import axios from 'axios';
 import cli from 'cli-ux';
 import * as chalk from 'chalk';
 import { IApiWrapper } from '../interface/api';
-import { hostPrompt, tokenPrompt } from '../utils/prompt';
-import { getPrivateConfig, getWidgetConfig } from '../utils/project';
+import { autoPrompt } from '../utils/prompt';
 
 export default class Unpublish extends Command {
   static description = 'Login authentication, and cache the API Token';
@@ -17,6 +16,7 @@ Succeed!
 
   static flags = {
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
+    global: flags.boolean({ char: 'g', description: 'Specify global widget package' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
   };
 
@@ -55,20 +55,7 @@ Succeed!
   }
 
   async run() {
-    let { args: { packageId, globalPackageId }, flags: { host, token }} = this.parse(Unpublish);
-
-    if (!packageId && !globalPackageId) {
-      const config = getPrivateConfig();
-      token = config.token!;
-      host = config.host!;
-      packageId = getWidgetConfig().packageId;
-    } else {
-      host = await hostPrompt();
-      token = await tokenPrompt();
-      if (globalPackageId) {
-        packageId = globalPackageId;
-      }
-    }
+    const { host, token, packageId } = await autoPrompt(this.parse(Unpublish));
 
     const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
 

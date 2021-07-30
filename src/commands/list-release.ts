@@ -37,7 +37,7 @@ Succeed!
     return result.data;
   }
 
-  async getWidgetPackage({ host, token, packageId }: {host: string, token: string, packageId: string}) {
+  async getWidgetPackage({ host, token, packageId }: {host: string, token: string, packageId: string }) {
     const result = await axios.get<IApiWrapper>(`/widget/package/${packageId}`, {
       baseURL: `${host}/api/v1`,
       headers: {

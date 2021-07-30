@@ -7,23 +7,13 @@ import * as fse from 'fs-extra';
 import * as chalk from 'chalk';
 import Config from '../config';
 import { IApiWrapper } from '../interface/api';
-import { generateRandomId } from '../utils/id';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import { IWidgetConfig } from '../interface/widget_config';
 import { kebab2camel } from '../utils/string';
-import { updatePrivateConfig } from '../utils/project';
+import { setPackageJson, updatePrivateConfig } from '../utils/project';
+import { PackageType, ReleaseType } from '../enum';
 
 const templateDir = path.resolve(__dirname, '../template/developer_template');
-
-enum PackageType {
-  Custom = 0,
-  Official = 1,
-}
-
-enum ReleaseType {
-  Space = 0,
-  Global = 1,
-}
 
 export default class Init extends Command {
   static description = 'Create a widget project and register it in your space';
@@ -37,7 +27,6 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
   static flags = {
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
     official: flags.boolean({ description: 'With official capacity', hidden: true }),
-    packageId: flags.string({ description: 'widgetPackageId, Start with "wpk" followed by 10 alphanumeric or numbers', hidden: true }),
     name: flags.string({ char: 'c', description: 'Name your widget and project' }),
     authorName: flags.string({ description: 'Author name' }),
     authorLink: flags.string({ description: 'Author website' }),
@@ -50,32 +39,40 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
   ];
 
   exec(cmd: string, destDir: string) {
-    exec(cmd, { cwd: destDir }, (error, stdout, stderr) => {
-      if (error) {
-        this.error(error.message);
-      }
-      if (stderr) {
-        this.error(stderr);
-      }
+    return new Promise((resolve, reject) => {
+      exec(cmd, { cwd: destDir }, (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        }
 
-      this.log(stdout);
+        if (stderr) {
+          console.error(stderr);
+          return;
+        }
+  
+        this.log(stdout);
+        resolve(undefined);
+      });
     });
   }
 
-  gitInit(destDir: string) {
-    this.log('run git init...');
-    this.exec('git init', destDir);
-    this.exec('git add .', destDir);
-    this.exec('git commit -m \'initial commit\'', destDir);
+  async gitInit(destDir: string) {
+    this.log(chalk.yellowBright('git init'));
+    await this.exec('git init', destDir);
+    this.log(chalk.yellowBright('git add .'));
+    await this.exec('git add .', destDir);
+    this.log(chalk.yellowBright('git commit'));
+    await this.exec('git commit -m \'initial commit\'', destDir);
   }
 
-  install(destDir: string) {
-    this.log('run yarn install...');
-    this.exec('yarn', destDir);
+  async install(destDir: string) {
+    this.log(chalk.yellowBright('yarn install'));
+
+    await this.exec('yarn install', destDir);
   }
 
   async createWidgetPackage(
-    { host, token, packageId, name, spaceId, packageType, releaseType, authorName, authorLink, authorEmail }:
+    { host, token, name, spaceId, packageType, releaseType, authorName, authorLink, authorEmail }:
     {
       host: string; token: string; packageId?: string; name: string;
       spaceId: string; packageType: PackageType; releaseType: ReleaseType;
@@ -84,7 +81,6 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
   ) {
     const data = {
       spaceId,
-      packageId,
       packageType,
       releaseType,
       authorName,
@@ -95,7 +91,6 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
         'zh-CN': name,
       }),
     };
-    this.log(JSON.stringify(data, null, 2));
     const result = await axios.post<IApiWrapper<{packageId: string}>>('/widget/package/create', data, {
       baseURL: `${host}/api/v1`,
       headers: {
@@ -104,7 +99,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     });
 
     if (result.data.success) {
-      this.log(`Successful create widgetPackage from server, ${JSON.stringify(result.data)}`);
+      this.log('Successful create widgetPackage from server');
     } else {
       this.error(result.data.message, { code: String(result.data.code) });
     }
@@ -112,13 +107,9 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
   }
 
   async run() {
-    let { args: { token, spaceId }, flags: { host, official, packageId, name, authorName, authorLink, authorEmail }} = this.parse(Init);
+    let { args: { token, spaceId }, flags: { host, official, name, authorName, authorLink, authorEmail }} = this.parse(Init);
     if (official) {
-      this.warn('Your are creating a official widget project!');
-      if (!packageId) {
-        const randomId = generateRandomId('wpk', 10);
-        packageId = await cli.prompt('widgetPackageId, Start with "wpk" followed by 10 alphanumeric or numbers', { default: randomId });
-      }
+      this.log(chalk.yellowBright('Your are creating a official widget project!'));
     }
 
     token = await tokenPrompt(token);
@@ -153,7 +144,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     let result;
     try {
       result = await this.createWidgetPackage({
-        packageId, token, spaceId, host: host!, name: name!, authorName, authorEmail, authorLink,
+        token, spaceId, host: host!, name: name!, authorName, authorEmail, authorLink,
         releaseType: ReleaseType.Space,
         packageType: official ? PackageType.Official : PackageType.Custom,
       });
@@ -181,8 +172,15 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
 
     updatePrivateConfig({ host, token }, rootDir);
 
-    // this.gitInit(destDir);
-    // this.install(destDir);
-    this.log(chalk.greenBright(`your widget: ${name} is successfully created, cd ./${name} go check!`));
+    setPackageJson('name', name!, rootDir);
+
+    try {
+      await this.gitInit(rootDir);
+      // await this.install(rootDir);
+    } catch(error) {
+
+    } finally {
+      this.log(chalk.greenBright(`your widget: ${name} is successfully created, cd ./${name} go check!`));
+    }
   }
 }

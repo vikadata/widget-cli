@@ -8,27 +8,27 @@ import Config from '../config';
 import { IWidgetConfig } from '../interface/widget_config';
 import { getWebpackConfig } from '../webpack.config';
 
-export function getWidgetConfig(): IWidgetConfig {
-  const rootDir = findWidgetRootDir();
+export function getWidgetConfig(rootDir?: string): IWidgetConfig {
+  rootDir = rootDir ?? findWidgetRootDir();
   return require(path.join(rootDir, Config.widgetConfigFileName));
 }
 
-export function getPackageJSON() {
-  const rootDir = findWidgetRootDir();
+export function getPackageJSON(rootDir?: string) {
+  rootDir = rootDir ?? findWidgetRootDir();
   return require(path.join(rootDir, 'package.json'));
 }
 
-export function setPackageJson(key: string, value: string | number | null | JSON) {
-  const rootDir = findWidgetRootDir();
-  const json = getPackageJSON();
+export function setPackageJson(key: string, value: string | number | null | JSON, rootDir?: string) {
+  rootDir = rootDir ?? findWidgetRootDir();
+  const json = getPackageJSON(rootDir);
   json[key] = value;
   fse.writeFileSync(path.join(rootDir, 'package.json'), JSON.stringify(json, null, 2));
 }
 
-export function setWidgetConfig(key: keyof IWidgetConfig, value: string & {[key: string]: string}) {
-  const rootDir = findWidgetRootDir();
-  const json = getWidgetConfig();
-  json[key] = value;
+export function setWidgetConfig(key: keyof IWidgetConfig, value: string | {[key: string]: string}, rootDir?: string) {
+  rootDir = rootDir ?? findWidgetRootDir();
+  const json = getWidgetConfig(rootDir);
+  json[key] = value as any;
   fse.writeFileSync(path.join(rootDir, Config.widgetConfigFileName), JSON.stringify(json, null, 2));
 }
 
