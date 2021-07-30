@@ -6,10 +6,10 @@ import { IApiWrapper } from '../interface/api';
 import { autoPrompt } from '../utils/prompt';
 
 export default class Unpublish extends Command {
-  static description = 'Login authentication, and cache the API Token';
+  static description = 'unpublish your widget package';
 
   static examples = [
-    `$ widget-cli auth [apiToken] --host [host]
+    `$ widget-cli unpublish
 Succeed!
 `,
   ];

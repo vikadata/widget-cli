@@ -28,28 +28,54 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`widget-cli hello [FILE]`](#widget-cli-hello-file)
+* [`widget-cli auth [TOKEN]`](#widget-cli-auth-token)
+* [`widget-cli ban [PACKAGEID]`](#widget-cli-ban-packageid)
 * [`widget-cli help [COMMAND]`](#widget-cli-help-command)
+* [`widget-cli init [TOKEN] [SPACEID]`](#widget-cli-init-token-spaceid)
+* [`widget-cli list-release [PACKAGEID]`](#widget-cli-list-release-packageid)
+* [`widget-cli release`](#widget-cli-release)
+* [`widget-cli rollback [PACKAGEID] [VERSION]`](#widget-cli-rollback-packageid-version)
+* [`widget-cli start`](#widget-cli-start)
+* [`widget-cli unpublish [PACKAGEID]`](#widget-cli-unpublish-packageid)
 
-## `widget-cli hello [FILE]`
+## `widget-cli auth [TOKEN]`
 
-describe the command here
+login authentication, and cache the API Token
 
 ```
 USAGE
-  $ widget-cli hello [FILE]
+  $ widget-cli auth [TOKEN]
+
+ARGUMENTS
+  TOKEN  Your API Token
 
 OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+  -h, --host=host  Specifies the host of the server, such as https://vika.cn
 
 EXAMPLE
-  $ widget-cli hello
-  hello world from ./src/hello.ts!
+  $ widget-cli auth [apiToken] --host [host]
+  Succeed!
 ```
 
-_See code: [src/commands/hello.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/hello.ts)_
+_See code: [src/commands/auth.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/auth.ts)_
+
+## `widget-cli ban [PACKAGEID]`
+
+```
+USAGE
+  $ widget-cli ban [PACKAGEID]
+
+ARGUMENTS
+  PACKAGEID  The widget package you want to ban
+
+OPTIONS
+  -g, --global       Specify global widget package
+  -h, --host=host    Specifies the host of the server, such as https://vika.cn
+  -t, --token=token  Your API Token
+  --unban            unban package
+```
+
+_See code: [src/commands/ban.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/ban.ts)_
 
 ## `widget-cli help [COMMAND]`
 
@@ -67,4 +93,138 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.2/src/commands/help.ts)_
+
+## `widget-cli init [TOKEN] [SPACEID]`
+
+create a widget project and register it in your space
+
+```
+USAGE
+  $ widget-cli init [TOKEN] [SPACEID]
+
+ARGUMENTS
+  TOKEN    Your API Token
+  SPACEID  In which space to put the widget on
+
+OPTIONS
+  -c, --name=name            Name your widget and project
+  -h, --host=host            Specifies the host of the server, such as https://vika.cn
+  --authorEmail=authorEmail  Author Email
+  --authorLink=authorLink    Author website
+  --authorName=authorName    Author name
+
+EXAMPLE
+  $ widget-cli auth
+  your widget: my-widget is successfully created, cd my-widget/ check it out!
+```
+
+_See code: [src/commands/init.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/init.ts)_
+
+## `widget-cli list-release [PACKAGEID]`
+
+list all version information for your widget package release
+
+```
+USAGE
+  $ widget-cli list-release [PACKAGEID]
+
+ARGUMENTS
+  PACKAGEID  The widget package you want to unpublish
+
+OPTIONS
+  -g, --global       Specify global widget package
+  -h, --host=host    Specifies the host of the server, such as https://vika.cn
+  -t, --token=token  Your API Token
+
+EXAMPLE
+  $ widget-cli list-release [packageId]
+  Succeed!
+```
+
+_See code: [src/commands/list-release.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/list-release.ts)_
+
+## `widget-cli release`
+
+release your widget package
+
+```
+USAGE
+  $ widget-cli release
+
+OPTIONS
+  -g, --global           Release this widget package to global
+  -v, --version=version  Specifies the version of the project
+
+EXAMPLE
+  $ widget-cli release
+  Succeed!
+```
+
+_See code: [src/commands/release.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/release.ts)_
+
+## `widget-cli rollback [PACKAGEID] [VERSION]`
+
+rollback the widget package to the specified version
+
+```
+USAGE
+  $ widget-cli rollback [PACKAGEID] [VERSION]
+
+ARGUMENTS
+  PACKAGEID  The widget package you want to rollback
+  VERSION    The version of the widget package you want to rollback
+
+OPTIONS
+  -g, --global       Specify global widget package
+  -h, --host=host    Specifies the host of the server, such as https://vika.cn
+  -t, --token=token  Your API Token
+
+EXAMPLE
+  $ widget-cli rollback [packageId] [version] --host [host] --token [token]
+  Succeed!
+```
+
+_See code: [src/commands/rollback.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/rollback.ts)_
+
+## `widget-cli start`
+
+start current widget project in develop mode
+
+```
+USAGE
+  $ widget-cli start
+
+OPTIONS
+  -p, --port=port  [default: 9000] Specifies the port of the local server
+  --debug          show debug information for cli it self
+
+EXAMPLE
+  $ widget-cli start
+  Compiling...
+```
+
+_See code: [src/commands/start.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/start.ts)_
+
+## `widget-cli unpublish [PACKAGEID]`
+
+unpublish your widget package
+
+```
+USAGE
+  $ widget-cli unpublish [PACKAGEID]
+
+ARGUMENTS
+  PACKAGEID  The widget package you want to unpublish
+
+OPTIONS
+  -g, --global       Specify global widget package
+  -h, --host=host    Specifies the host of the server, such as https://vika.cn
+  -t, --token=token  Your API Token
+
+EXAMPLE
+  $ widget-cli unpublish
+  Succeed!
+```
+
+_See code: [src/commands/unpublish.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/unpublish.ts)_
 <!-- commandsstop -->

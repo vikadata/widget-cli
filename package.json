@@ -1,12 +1,15 @@
 {
   "name": "@vikadata/widget-cli",
-  "description": "help you build awesome vika widget",
+  "description": "help you to build awesome vika widget",
   "version": "0.1.0",
   "author": "vikadata",
   "bin": {
     "widget-cli": "./bin/run"
   },
   "bugs": "https://github.com/vikadata/widget-cli/issues",
+  "publishConfig": {
+    "registry": "http://nexus.vika.ltd/repository/vika-npm-local/"
+  },
   "dependencies": {
     "@oclif/command": "^1",
     "@oclif/config": "^1",
@@ -56,6 +59,7 @@
   "files": [
     "/bin",
     "/lib",
+    "/template",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],

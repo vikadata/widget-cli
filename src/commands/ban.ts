@@ -6,7 +6,7 @@ import { IApiWrapper } from '../interface/api';
 import { autoPrompt } from '../utils/prompt';
 
 export default class Ban extends Command {
-  static description = 'Ban widget';
+  // static description = 'ban widget';
 
   static hidden: true;
 
@@ -18,8 +18,7 @@ export default class Ban extends Command {
   };
 
   static args = [
-    { name: 'packageId', description: 'The widget package you want to rollback' },
-    { name: 'version', description: 'The version of the widget package you want to rollback' },
+    { name: 'packageId', description: 'The widget package you want to ban' },
   ];
 
   async banRelease({ host, token, packageId, unban }: {host: string, token: string, packageId: string, unban: boolean}) {
