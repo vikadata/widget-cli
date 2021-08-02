@@ -63,10 +63,10 @@ export const getWebpackConfig = (
       root: '_@vika/widget-sdk',
     },
     '@vika/icons': {
-      commonjs: '@vika/widget-sdk',
-      commonjs2: '@vika/widget-sdk',
-      amd: '@vika/widget-sdk',
-      root: '_@vika/widget-sdk',
+      commonjs: '@vika/icons',
+      commonjs2: '@vika/icons',
+      amd: '@vika/icons',
+      root: '_@vika/icons',
     }
   },
   resolve: {
