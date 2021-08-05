@@ -31,5 +31,8 @@
     "@vika/components": "*",
     "@vika/icons": "*",
     "@vika/widget-sdk": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.0"
   }
 }

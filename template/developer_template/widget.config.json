@@ -19,12 +19,12 @@
 
   "authorIcon": "./author_icon.png",
 
-  "authorLink": "https://developer.vika.cn",
+  "authorLink": "https://vika.cn/developers",
 
   "authorEmail": "developer@vikadata.com",
 
   "description": {
-    "zh_CN": "这是我的小组件描述",
-    "en_US": "my widget description"
+    "zh_CN": "这是开发者模板小组件，你可以通过我来快速体验 widget-sdk 的各项功能，然后修改我，将我变成你自己的小组件描述吧",
+    "en_US": "This is the developer template widget. You can quickly experience the various functions of widget-sdk through me, then modify me and turn me into your own widget description."
   }
 }
