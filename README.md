@@ -40,7 +40,7 @@ USAGE
 
 ## `widget-cli auth [TOKEN]`
 
-login authentication, and cache the API Token
+Login authentication, and cache the API Token
 
 ```
 USAGE
@@ -72,7 +72,7 @@ OPTIONS
   -g, --global       Specify global widget package
   -h, --host=host    Specifies the host of the server, such as https://vika.cn
   -t, --token=token  Your API Token
-  --unban            unban package
+  --unban            Unban package
 ```
 
 _See code: [src/commands/ban.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/ban.ts)_
@@ -96,7 +96,7 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.2
 
 ## `widget-cli init [TOKEN] [SPACEID]`
 
-create a widget project and register it in your space
+Create a widget project and register it in your space
 
 ```
 USAGE
@@ -122,7 +122,7 @@ _See code: [src/commands/init.ts](https://github.com/vikadata/widget-cli/blob/v0
 
 ## `widget-cli list-release [PACKAGEID]`
 
-list all version information for your widget package release
+List all version information for your widget package release
 
 ```
 USAGE
@@ -145,7 +145,7 @@ _See code: [src/commands/list-release.ts](https://github.com/vikadata/widget-cli
 
 ## `widget-cli release`
 
-release your widget package
+Release your widget package
 
 ```
 USAGE
@@ -164,7 +164,7 @@ _See code: [src/commands/release.ts](https://github.com/vikadata/widget-cli/blob
 
 ## `widget-cli rollback [PACKAGEID] [VERSION]`
 
-rollback the widget package to the specified version
+Rollback the widget package to the specified version
 
 ```
 USAGE
@@ -188,15 +188,16 @@ _See code: [src/commands/rollback.ts](https://github.com/vikadata/widget-cli/blo
 
 ## `widget-cli start`
 
-start current widget project in develop mode
+Start current widget project in develop mode
 
 ```
 USAGE
   $ widget-cli start
 
 OPTIONS
-  -p, --port=port  [default: 9000] Specifies the port of the local server
-  --debug          show debug information for cli it self
+  -o, --protocol=protocol  [default: https] Specifies the protocol of the local server
+  -p, --port=port          [default: 9000] Specifies the port of the local server
+  --debug                  Show debug information for cli it self
 
 EXAMPLE
   $ widget-cli start
@@ -207,7 +208,7 @@ _See code: [src/commands/start.ts](https://github.com/vikadata/widget-cli/blob/v
 
 ## `widget-cli unpublish [PACKAGEID]`
 
-unpublish your widget package
+Unpublish your widget package
 
 ```
 USAGE

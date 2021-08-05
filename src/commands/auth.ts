@@ -6,7 +6,7 @@ import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import { updatePrivateConfig } from '../utils/project';
 
 export default class Auth extends Command {
-  static description = 'login authentication, and cache the API Token';
+  static description = 'Login authentication, and cache the API Token';
 
   static examples = [
     `$ widget-cli auth [apiToken] --host [host]

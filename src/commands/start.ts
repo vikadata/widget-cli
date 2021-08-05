@@ -11,7 +11,7 @@ import { startCompile } from '../utils/project';
 const sslDir = path.resolve(__dirname, '../../ssl');
 
 export default class Start extends Command {
-  static description = 'start current widget project in develop mode';
+  static description = 'Start current widget project in develop mode';
 
   static examples = [
     `$ widget-cli start
@@ -20,9 +20,9 @@ Compiling...
   ];
 
   static flags = {
-    port: flags.string({ char: 'p', description: 'specifies the port of the local server', default: '9000' }),
-    protocol: flags.string({ char: 'o', description: 'specifies the protocol of the local server', default: 'https' }),
-    debug: flags.boolean({ description: 'show debug information for cli it self' }),
+    port: flags.string({ char: 'p', description: 'Specifies the port of the local server', default: '9000' }),
+    protocol: flags.string({ char: 'o', description: 'Specifies the protocol of the local server', default: 'https' }),
+    debug: flags.boolean({ description: 'Show debug information for cli it self' }),
   };
 
   hostCompliedFile(port: string, protocol: string) {

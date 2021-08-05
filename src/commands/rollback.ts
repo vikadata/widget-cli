@@ -6,7 +6,7 @@ import { IApiWrapper } from '../interface/api';
 import { autoPrompt } from '../utils/prompt';
 
 export default class Rollback extends Command {
-  static description = 'rollback the widget package to the specified version';
+  static description = 'Rollback the widget package to the specified version';
 
   static examples = [
     `$ widget-cli rollback [packageId] [version] --host [host] --token [token]

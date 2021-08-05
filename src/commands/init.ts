@@ -16,7 +16,7 @@ import { PackageType, ReleaseType } from '../enum';
 const templateDir = path.resolve(__dirname, '../../template/developer_template');
 
 export default class Init extends Command {
-  static description = 'create a widget project and register it in your space';
+  static description = 'Create a widget project and register it in your space';
 
   static examples = [
     `$ widget-cli auth

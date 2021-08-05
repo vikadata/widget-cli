@@ -5,7 +5,7 @@ import { IApiWrapper } from '../interface/api';
 import { autoPrompt } from '../utils/prompt';
 
 export default class ListRelease extends Command {
-  static description = 'list all version information for your widget package release';
+  static description = 'List all version information for your widget package release';
 
   static examples = [
     `$ widget-cli list-release [packageId]

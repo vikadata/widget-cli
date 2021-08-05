@@ -38,7 +38,7 @@ interface IReleaseParams {
 }
 
 export default class Release extends Command {
-  static description = 'release your widget package';
+  static description = 'Release your widget package';
 
   static examples = [
     `$ widget-cli release

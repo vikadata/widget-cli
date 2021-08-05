@@ -6,7 +6,7 @@ import { IApiWrapper } from '../interface/api';
 import { autoPrompt } from '../utils/prompt';
 
 export default class Unpublish extends Command {
-  static description = 'unpublish your widget package';
+  static description = 'Unpublish your widget package';
 
   static examples = [
     `$ widget-cli unpublish
