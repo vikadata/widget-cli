@@ -1,5 +1,5 @@
 {
-  "name": "@vikadata/widget-cli",
+  "name": "@vika/widget-cli",
   "description": "help you to build awesome vika widget",
   "version": "0.1.0",
   "author": "vikadata",
@@ -60,6 +60,7 @@
     "/bin",
     "/lib",
     "/template",
+    "/ssl",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
@@ -78,7 +79,7 @@
       "@oclif/plugin-help"
     ],
     "hooks": {
-      "init": "./src/hooks/init"
+      "init": "./lib/hooks/init"
     }
   },
   "repository": "vikadata/widget-cli",

@@ -15,11 +15,11 @@ help you build awesome vika widget
 # Usage
 <!-- usage -->
 ```sh-session
-$ npm install -g @vikadata/widget-cli
+$ npm install -g @vika/widget-cli
 $ widget-cli COMMAND
 running command...
 $ widget-cli (-v|--version|version)
-@vikadata/widget-cli/0.1.0 darwin-x64 node-v14.16.0
+@vika/widget-cli/0.1.0 darwin-x64 node-v14.16.0
 $ widget-cli --help [COMMAND]
 USAGE
   $ widget-cli COMMAND
