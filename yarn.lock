@@ -1036,7 +1036,7 @@ cli-progress@^3.4.0:
     colors "^1.1.2"
     string-width "^4.2.0"
 
-cli-ux@^5.2.1:
+cli-ux@^5.2.1, cli-ux@^5.6.3:
   version "5.6.3"
   resolved "https://registry.nlark.com/cli-ux/download/cli-ux-5.6.3.tgz#eecdb2e0261171f2b28f2be6b18c490291c3a287"
   integrity sha1-7s2y4CYRcfKyjyvmsYxJApHDooc=
