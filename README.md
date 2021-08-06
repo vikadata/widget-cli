@@ -19,7 +19,7 @@ $ npm install -g @vika/widget-cli
 $ widget-cli COMMAND
 running command...
 $ widget-cli (-v|--version|version)
-@vika/widget-cli/0.1.0 darwin-x64 node-v14.16.0
+@vika/widget-cli/0.1.1 darwin-x64 node-v14.16.0
 $ widget-cli --help [COMMAND]
 USAGE
   $ widget-cli COMMAND
@@ -57,7 +57,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [src/commands/auth.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/auth.ts)_
+_See code: [src/commands/auth.ts](https://github.com/vikadata/widget-cli/blob/v0.1.1/src/commands/auth.ts)_
 
 ## `widget-cli ban [PACKAGEID]`
 
@@ -75,7 +75,7 @@ OPTIONS
   --unban            Unban package
 ```
 
-_See code: [src/commands/ban.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/ban.ts)_
+_See code: [src/commands/ban.ts](https://github.com/vikadata/widget-cli/blob/v0.1.1/src/commands/ban.ts)_
 
 ## `widget-cli help [COMMAND]`
 
@@ -118,7 +118,7 @@ EXAMPLE
   your widget: my-widget is successfully created, cd my-widget/ check it out!
 ```
 
-_See code: [src/commands/init.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/init.ts)_
+_See code: [src/commands/init.ts](https://github.com/vikadata/widget-cli/blob/v0.1.1/src/commands/init.ts)_
 
 ## `widget-cli list-release [PACKAGEID]`
 
@@ -141,7 +141,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [src/commands/list-release.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/list-release.ts)_
+_See code: [src/commands/list-release.ts](https://github.com/vikadata/widget-cli/blob/v0.1.1/src/commands/list-release.ts)_
 
 ## `widget-cli release`
 
@@ -160,7 +160,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [src/commands/release.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/release.ts)_
+_See code: [src/commands/release.ts](https://github.com/vikadata/widget-cli/blob/v0.1.1/src/commands/release.ts)_
 
 ## `widget-cli rollback [PACKAGEID] [VERSION]`
 
@@ -184,7 +184,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [src/commands/rollback.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/rollback.ts)_
+_See code: [src/commands/rollback.ts](https://github.com/vikadata/widget-cli/blob/v0.1.1/src/commands/rollback.ts)_
 
 ## `widget-cli start`
 
@@ -204,7 +204,7 @@ EXAMPLE
   Compiling...
 ```
 
-_See code: [src/commands/start.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/start.ts)_
+_See code: [src/commands/start.ts](https://github.com/vikadata/widget-cli/blob/v0.1.1/src/commands/start.ts)_
 
 ## `widget-cli unpublish [PACKAGEID]`
 
@@ -227,5 +227,5 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [src/commands/unpublish.ts](https://github.com/vikadata/widget-cli/blob/v0.1.0/src/commands/unpublish.ts)_
+_See code: [src/commands/unpublish.ts](https://github.com/vikadata/widget-cli/blob/v0.1.1/src/commands/unpublish.ts)_
 <!-- commandsstop -->
