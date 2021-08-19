@@ -1,7 +1,7 @@
 {
   "name": "@vika/widget-cli",
   "description": "help you to build awesome vika widget",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "author": "vikadata",
   "bin": {
     "widget-cli": "./bin/run"
@@ -14,12 +14,15 @@
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^3",
+    "@types/adm-zip": "^0.4.34",
     "@types/archiver": "^5.1.1",
     "@types/express": "^4.17.13",
     "@types/fs-extra": "^9.0.12",
     "@types/gitignore-parser": "^0.0.0",
     "@types/glob": "^7.1.4",
+    "@types/mv": "^2.1.2",
     "@types/semver": "^7.3.7",
+    "adm-zip": "^0.5.5",
     "archiver": "^5.3.0",
     "archiver-zip-encrypted": "^1.0.10",
     "axios": "^0.21.1",
@@ -31,6 +34,7 @@
     "fs-extra": "^10.0.0",
     "gitignore-parser": "^0.0.2",
     "glob": "^7.1.7",
+    "mv": "^2.1.1",
     "semver": "^7.3.5",
     "ts-loader": "^9.2.3",
     "tslib": "^1",
@@ -60,8 +64,6 @@
   "files": [
     "/bin",
     "/lib",
-    "/template",
-    "/template/**/.*",
     "/ssl",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
