@@ -40,8 +40,8 @@ export async function autoPrompt(
     host = authConfig.host!;
     packageId = global ? widgetConfig.globalPackageId : widgetConfig.packageId;
   } else {
-    host = await hostPrompt();
-    token = await tokenPrompt();
+    host = await hostPrompt(host);
+    token = await tokenPrompt(token);
   }
 
   return {
