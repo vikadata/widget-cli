@@ -1,4 +1,4 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 import cli from 'cli-ux';
 import axios from 'axios';
 import * as glob from 'glob';
@@ -17,6 +17,8 @@ import { generateRandomId, generateRandomString } from '../utils/id';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
 import { PackageType, ReleaseType } from '../enum';
+import { autoPrompt } from '../utils/prompt';
+import ListRelease from './list-release';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
 
@@ -33,11 +35,11 @@ interface IReleaseParams {
   authorEmail: string;
   description: { [key: string]: string }; // { 'zh-CN': '小组件', 'en-US': 'widget' }
 	releaseCodeBundle: string;
-	sourceCodeBundle: string;
-	secretKey: string;
+	sourceCodeBundle?: string;
+	secretKey?: string;
 }
 
-export default class Release extends Command {
+export default class Release extends ListRelease {
   static description = 'Release your widget package';
 
   static examples = [
@@ -47,8 +49,14 @@ Succeed!
   ];
 
   static flags = {
+    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
+    token: flags.string({ char: 't', description: 'Your API Token' }),
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
     global: flags.boolean({ char: 'g', description: 'Release this widget package to global' }),
+    create: flags.boolean({ char: 'c', description: 'Create a new widget before release, only work in global mode' }),
+    ['open-source']: flags.boolean({
+      char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
+    }),
   };
 
   getShaSum(file: string): Promise<string> {
@@ -67,10 +75,12 @@ Succeed!
     });
   }
 
-  pack(rootDir: string, outputName: string, password: string, files: string[]): Promise<archiver.Archiver> {
+  pack(rootDir: string, outputName: string, files: string[], password?: string): Promise<archiver.Archiver> {
     return new Promise((resolve, reject) => {
       const output = fse.createWriteStream(path.join(rootDir, outputName));
-      const archive = archiver('zip-encrypted' as any, { zlib: { level: 8 }, encryptionMethod: 'aes256', password } as any);
+      const archive = password ?
+        archiver('zip-encrypted' as any, { zlib: { level: 9 }, encryptionMethod: 'aes256', password } as any) : 
+        archiver('zip', { zlib: { level: 9 }});
 
       // listen for all archive data to be written
       // 'close' event is fired only when a file descriptor is involved
@@ -201,6 +211,10 @@ Succeed!
     const jsonString = ['name', 'description'];
 
     Object.entries(params).forEach(([key, value]) => {
+      if (!value) {
+        return;
+      }
+
       if (files.includes(key)) {
         const file = fse.createReadStream(path.join(rootDir, value));
         form.append(key, file as any);
@@ -251,24 +265,67 @@ Succeed!
     return version;
   }
 
-  async getWidgetPackage(packageId: string) {
-    const { host, token } = getPrivateConfig();
+  async packSourceCode({ secure, outputName }: { secure?: boolean, outputName: string }) {
+    // use this to unzip the output zip package
+    const secretKey = secure ? generateRandomString(64) : undefined;
+    const rootDir = findWidgetRootDir();
+    const files = await this.getProjectFiles(rootDir);
+    const outputFile = `${outputName}.zip`;
+    const outputFilePath = path.join(rootDir, outputFile);
+    const packageSize = fse.statSync(outputFilePath).size;
+    // provide graceful log, inspired by npm pack
+    this.log(chalk.greenBright(`📦  ${outputName}`));
 
-    const result = await axios.get<IApiWrapper<{packageType: PackageType}>>(`/widget/package/${packageId}`, {
-      baseURL: `${host}/api/v1`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    cli.action.start('packing source code');
+    await this.pack(rootDir, outputFile, files, secretKey);
+    cli.action.stop();
+
+    const shaSum = await this.getShaSum(outputFilePath);
+
+    return {
+      outputFile,
+      packageSize,
+      secretKey,
+      shaSum,
+      files,
+      rootDir,
+    };
+  }
+
+  logSourceCode(result: {
+    outputFile: string,
+    packageSize: number,
+    shaSum: string,
+    files: string[],
+    rootDir: string,
+    secretKey?: string,
+  }) {
+    this.log();
+    this.log(chalk.yellowBright('=== Source Code Contents ==='));
+    let unpackedSize = 0;
+    result.files.forEach(file => {
+      const { size } = fse.statSync(file);
+      // use padEnd to typography
+      this.log(`${readableFileSize(size).padEnd(8)} ${path.relative(result.rootDir, file)}`);
+      unpackedSize += size;
     });
 
-    if (!result.data.success) {
-      this.error(result.data.message, { code: String(result.data.code), exit: 1 });
+    this.log(`filename:      ${result.outputFile}`);
+    this.log(`package size:  ${readableFileSize(result.packageSize)}`);
+    this.log(`unpacked size: ${readableFileSize(unpackedSize)}`);
+    this.log(`shasum:        ${result.shaSum}`);
+    this.log(`total files:   ${result.files.length}`);
+    if (result.secretKey) {
+      this.log(`secretKey:     ${result.secretKey}`);
     }
-    return result.data;
   }
 
   async run() {
-    let { flags: { version, global: globalFlag }} = this.parse(Release);
+    const parsed = this.parse(Release);
+    let { flags: { version, global: globalFlag }} = parsed;
+    const openSource = parsed.flags['open-source'];
+
+    let { packageId, host, token } = await autoPrompt(parsed);
 
     if (!version) {
       version = await cli.prompt('release version', { default: this.increaseVersion(), required: true });
@@ -276,87 +333,90 @@ Succeed!
 
     version = this.checkVersion(version!);
     setPackageJson('version', version);
-
-    const rootDir = findWidgetRootDir();
-    const files = await this.getProjectFiles(rootDir);
-
-    const outputName = `${getName()}@${getVersion()}`;
-    const outputFile = `${outputName}.zip`;
-    const outputFilePath = path.join(rootDir, outputFile);
-    // use this to unzip the output zip package
-    const secretKey = generateRandomString(64);
-    // provide graceful log, inspired by npm pack
-    this.log(chalk.greenBright(`📦  ${outputName}`));
-
-    // pack sourceCode to zip
-    cli.action.start('packing source code');
-    await this.pack(rootDir, outputFile, secretKey, files);
-    cli.action.stop();
     // build production code for release
     cli.action.start('compiling');
     await this.compile();
-    const packageSize = fse.statSync(outputFilePath).size;
-    // for check
-    const shaSum = await this.getShaSum(outputFilePath);
     cli.action.stop();
 
-    this.log();
-    this.log(chalk.yellowBright('=== Package Contents ==='));
-    let unpackedSize = 0;
-    files.forEach(file => {
-      const { size } = fse.statSync(file);
-      // use padEnd to typography
-      this.log(`${readableFileSize(size).padEnd(8)} ${path.relative(rootDir, file)}`);
-      unpackedSize += size;
-    });
-    this.log();
-    this.log(chalk.yellowBright('=== Package Details ==='));
-    this.log(`name:          ${getName()}`);
-    this.log(`version:       ${version}`);
-    this.log(`filename:      ${outputFile}`);
-    this.log(`package size:  ${readableFileSize(packageSize)}`);
-    this.log(`unpacked size: ${readableFileSize(unpackedSize)}`);
-    this.log(`shasum:        ${shaSum}`);
-    this.log(`total files:   ${files.length}`);
-    this.log(`secretKey:     ${secretKey}`);
-
+    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
+    const codeSize = fse.statSync(releaseCodeBundle).size;
+    const outputName = `${getName()}@${getVersion()}`;
     let {
-      globalPackageId, packageId, spaceId, icon, cover, name,
+      spaceId, icon, cover, name,
       description, authorName, authorIcon, authorLink, authorEmail,
     } = getWidgetConfig();
-    // upload resources and get token
-    this.log();
-    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
 
-    // release a global package
-    if (globalFlag && !globalPackageId) {
-      const packageInfo = await this.getWidgetPackage(packageId);
-      let releaseWidgetType = 'Custom';
-      if (packageInfo.data.packageType === PackageType.Official) {
-        releaseWidgetType = 'Official';
-        this.log(chalk.yellowBright('Your project is a Official widget project'));
+    this.log();
+    this.log(chalk.yellowBright('=== Package Details ==='));
+    this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
+    this.log(`version:             ${version}`);
+    this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
+    this.log(`description          ${description['zh-CN'] || description['en-US']}`);
+    this.log(`icon                 ${icon}`);
+    this.log(`cover                 ${icon}`);
+    this.log(`authorName           ${authorName}`);
+    this.log(`authorIcon           ${authorIcon}`);
+    this.log(`authorEmail          ${authorEmail}`);
+    this.log(`authorLink           ${authorLink}`);
+    this.log(`releaseType          ${globalFlag ? 'space' : 'global'}`);
+
+    let secretKey;
+    let sourceCodeBundle;
+    if (openSource) {
+      // pack sourceCode to zip
+      const result = await this.packSourceCode({ outputName });
+      this.logSourceCode(result);
+      fse.removeSync(result.outputFile);
+      secretKey = result.secretKey;
+      sourceCodeBundle = result.outputFile;
+    }
+    this.log();
+
+    // if there is no packageId provide, we will create global package first
+    if (!packageId) {
+      if (!globalFlag) {
+        this.error('can not find packageId in config');
       }
-      this.log(chalk.yellowBright(`You are releasing a new [global] [${releaseWidgetType}] widget!`));
+
+      const goRelease = await cli.confirm('Release a new widget to global Y/n?');
+      if (!goRelease) {
+        return;
+      }
 
       const randomId = generateRandomId('wpk', 10);
-      globalPackageId = await cli.prompt(
+      packageId = await cli.prompt(
         'Specify the globalPackageId, Start with "wpk" followed by 10 alphanumeric or numbers',
         { default: randomId },
       );
 
       const result = await this.createWidgetPackage({
-        packageId: globalPackageId, spaceId, name, authorName, authorEmail, authorLink,
+        packageId, spaceId, name, authorName, authorEmail, authorLink,
         releaseType: ReleaseType.Global,
-        packageType: packageInfo.data.packageType,
+        packageType: PackageType.Official,
       });
-      globalPackageId = result.packageId;
+      packageId = result.packageId;
       // save globalPackageId to config
-      setWidgetConfig('globalPackageId', globalPackageId);
+      setWidgetConfig('globalPackageId', packageId);
+    } else {
+      // check if package not exit then create it
+      const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
+      if (!widgetPackage.data) {
+        const goRelease = await cli.confirm(`Release a new widget with Id: ${packageId} Y/n?`);
+        if (!goRelease) {
+          return;
+        }
+  
+        await this.createWidgetPackage({
+          packageId, spaceId, name, authorName, authorEmail, authorLink,
+          releaseType: ReleaseType.Global,
+          packageType: PackageType.Official,
+        });
+      }
     }
 
     const formData = this.buildFormData({
       spaceId,
-      packageId: globalFlag ? globalPackageId : packageId,
+      packageId,
       icon,
       cover,
       version,
@@ -367,7 +427,7 @@ Succeed!
       authorEmail,
       description,
       secretKey,
-      sourceCodeBundle: outputFile,
+      sourceCodeBundle,
       releaseCodeBundle,
     });
     cli.action.start('uploading');

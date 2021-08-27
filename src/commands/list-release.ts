@@ -51,14 +51,17 @@ Succeed!
     return result.data;
   }
 
-  async run() {
-    const { host, token, packageId } = await autoPrompt(this.parse(ListRelease));
-
+  async logWidgetPackage({ host, token, packageId }: { host: string, token: string, packageId: string }) {
     const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
+
+    if (!widgetPackage.data) {
+      this.log(chalk.yellowBright(`packageId: ${packageId} not exist`));
+      return widgetPackage;
+    }
 
     this.log(chalk.yellowBright('=== Package Details ==='));
     Object.entries(widgetPackage.data).forEach(([key, value]) => {
-      this.log((key+':').padEnd(15) + value);
+      value != null && this.log((key+':').padEnd(15) + value);
     });
 
     this.log();
@@ -66,10 +69,16 @@ Succeed!
     const packageRelease = await this.getPackageRelease({ host, token, packageId });
 
     Object.values<{[key: string]: string}>(packageRelease.data).forEach(item => {
-      this.log(chalk.yellow(`Version ${item.version}`));
       Object.entries(item).forEach(([key, value]) => {
-        this.log((key+':').padEnd(20) + value);
+        value != null && this.log((key+':').padEnd(20) + value);
       });
     });
+
+    return widgetPackage;
+  }
+
+  async run() {
+    const { host, token, packageId } = await autoPrompt(this.parse(ListRelease));
+    await this.logWidgetPackage({ host, token, packageId });
   }
 }
