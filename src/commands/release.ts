@@ -11,13 +11,13 @@ import * as chalk from 'chalk';
 import * as semver from 'semver';
 import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
-import { getName, getPrivateConfig, getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
+import { getName, getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { generateRandomId, generateRandomString } from '../utils/id';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
 import { PackageType, ReleaseType } from '../enum';
-import { autoPrompt } from '../utils/prompt';
+import { hostPrompt, packageIdPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
@@ -54,10 +54,15 @@ Succeed!
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
     global: flags.boolean({ char: 'g', description: 'Release this widget package to global' }),
     create: flags.boolean({ char: 'c', description: 'Create a new widget before release, only work in global mode' }),
+    ['space-id']: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
     ['open-source']: flags.boolean({
       char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
     }),
   };
+
+  static args = [
+    { name: 'packageId', description: 'The widget package id', hidden: true },
+  ];
 
   getShaSum(file: string): Promise<string> {
     return new Promise(resolve => {
@@ -146,8 +151,8 @@ Succeed!
     });
   }
 
-  async releaseWidget(form: FormData) {
-    const { host, token } = getPrivateConfig();
+  async releaseWidget(form: FormData, auth: { host: string, token: string }) {
+    const { host, token } = auth;
     const result = await axios.post<IApiWrapper>('/widget/package/release', form, {
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
@@ -168,15 +173,16 @@ Succeed!
   }
 
   async createWidgetPackage(
-    { name, packageId, spaceId, packageType, releaseType, authorName, authorLink, authorEmail }:
+    params :
     {
       packageId?: string; name: {[key: string]: string};
       spaceId: string; packageType: PackageType; releaseType: ReleaseType;
       authorName?: string; authorLink?: string; authorEmail?: string;
-    }
+    },
+    auth: {host: string , token: string}
   ) {
-    const { host, token } = getPrivateConfig();
-
+    const { name, packageId, spaceId, packageType, releaseType, authorName, authorLink, authorEmail } = params;
+    const { host, token } = auth;
     const data = {
       spaceId,
       packageId,
@@ -272,7 +278,6 @@ Succeed!
     const files = await this.getProjectFiles(rootDir);
     const outputFile = `${outputName}.zip`;
     const outputFilePath = path.join(rootDir, outputFile);
-    const packageSize = fse.statSync(outputFilePath).size;
     // provide graceful log, inspired by npm pack
     this.log(chalk.greenBright(`📦  ${outputName}`));
 
@@ -280,6 +285,7 @@ Succeed!
     await this.pack(rootDir, outputFile, files, secretKey);
     cli.action.stop();
 
+    const packageSize = fse.statSync(outputFilePath).size;
     const shaSum = await this.getShaSum(outputFilePath);
 
     return {
@@ -322,10 +328,14 @@ Succeed!
 
   async run() {
     const parsed = this.parse(Release);
-    let { flags: { version, global: globalFlag }} = parsed;
+    let { args: { packageId }, flags: { version, global: globalFlag, host, token }} = parsed;
     const openSource = parsed.flags['open-source'];
+    let spaceId = parsed.flags['space-id'];
 
-    let { packageId, host, token } = await autoPrompt(parsed);
+    // let { packageId, host, token } = await autoPrompt(parsed);
+    packageId = await packageIdPrompt(packageId);
+    host = await hostPrompt(host);
+    token = await tokenPrompt(token);
 
     if (!version) {
       version = await cli.prompt('release version', { default: this.increaseVersion(), required: true });
@@ -341,10 +351,12 @@ Succeed!
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
     const codeSize = fse.statSync(releaseCodeBundle).size;
     const outputName = `${getName()}@${getVersion()}`;
+    const widgetConfig = getWidgetConfig();
     let {
-      spaceId, icon, cover, name,
+      icon, cover, name,
       description, authorName, authorIcon, authorLink, authorEmail,
-    } = getWidgetConfig();
+    } = widgetConfig;
+    spaceId ??= widgetConfig.spaceId;
 
     this.log();
     this.log(chalk.yellowBright('=== Package Details ==='));
@@ -366,7 +378,6 @@ Succeed!
       // pack sourceCode to zip
       const result = await this.packSourceCode({ outputName });
       this.logSourceCode(result);
-      fse.removeSync(result.outputFile);
       secretKey = result.secretKey;
       sourceCodeBundle = result.outputFile;
     }
@@ -393,7 +404,7 @@ Succeed!
         packageId, spaceId, name, authorName, authorEmail, authorLink,
         releaseType: ReleaseType.Global,
         packageType: PackageType.Official,
-      });
+      }, { host, token });
       packageId = result.packageId;
       // save globalPackageId to config
       setWidgetConfig('globalPackageId', packageId);
@@ -408,9 +419,9 @@ Succeed!
   
         await this.createWidgetPackage({
           packageId, spaceId, name, authorName, authorEmail, authorLink,
-          releaseType: ReleaseType.Global,
+          releaseType: globalFlag ? ReleaseType.Global : ReleaseType.Space,
           packageType: PackageType.Official,
-        });
+        }, { host, token });
       }
     }
 
@@ -431,7 +442,8 @@ Succeed!
       releaseCodeBundle,
     });
     cli.action.start('uploading');
-    await this.releaseWidget(formData);
+    await this.releaseWidget(formData, { host, token });
+    sourceCodeBundle && fse.removeSync(sourceCodeBundle);
     cli.action.stop();
     this.log(chalk.greenBright(`successful release widget ${outputName}`));
   }

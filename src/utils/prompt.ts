@@ -19,6 +19,20 @@ export async function tokenPrompt(token?: string): Promise<string> {
   return token!;
 }
 
+export async function packageIdPrompt(packageId?: string): Promise<string> {
+  if (packageId) {
+    return packageId;
+  }
+
+  const widgetConfig = getWidgetConfig();
+  packageId = global ? widgetConfig.globalPackageId : widgetConfig.packageId;
+
+  if (!packageId) {
+    packageId = await cli.prompt('Your API Token', { required: true, type: 'mask' });
+  }
+  return packageId!;
+}
+
 /**
  * Return packageId/host/token in widgetConfig or prompt it
  * if user specify packageId, use the packageId
