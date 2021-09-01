@@ -19,7 +19,7 @@ $ npm install -g @vika/widget-cli
 $ widget-cli COMMAND
 running command...
 $ widget-cli (-v|--version|version)
-@vika/widget-cli/0.1.7 darwin-x64 node-v14.16.0
+@vika/widget-cli/0.1.8 darwin-x64 node-v14.16.0
 $ widget-cli --help [COMMAND]
 USAGE
   $ widget-cli COMMAND
@@ -57,7 +57,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v0.1.7/lib/commands/auth.js)_
+_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v0.1.8/lib/commands/auth.js)_
 
 ## `widget-cli ban [PACKAGEID]`
 
@@ -75,7 +75,7 @@ OPTIONS
   --unban            Unban package
 ```
 
-_See code: [lib/commands/ban.js](https://github.com/vikadata/widget-cli/blob/v0.1.7/lib/commands/ban.js)_
+_See code: [lib/commands/ban.js](https://github.com/vikadata/widget-cli/blob/v0.1.8/lib/commands/ban.js)_
 
 ## `widget-cli help [COMMAND]`
 
@@ -118,7 +118,7 @@ EXAMPLE
   your widget: my-widget is successfully created, cd my-widget/ check it out!
 ```
 
-_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v0.1.7/lib/commands/init.js)_
+_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v0.1.8/lib/commands/init.js)_
 
 ## `widget-cli list-release [PACKAGEID]`
 
@@ -141,7 +141,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v0.1.7/lib/commands/list-release.js)_
+_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v0.1.8/lib/commands/list-release.js)_
 
 ## `widget-cli release`
 
@@ -152,7 +152,10 @@ USAGE
   $ widget-cli release
 
 OPTIONS
+  -c, --create           Create a new widget before release, only work in global mode
   -g, --global           Release this widget package to global
+  -h, --host=host        Specifies the host of the server, such as https://vika.cn
+  -t, --token=token      Your API Token
   -v, --version=version  Specifies the version of the project
 
 EXAMPLE
@@ -160,7 +163,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/release.js](https://github.com/vikadata/widget-cli/blob/v0.1.7/lib/commands/release.js)_
+_See code: [lib/commands/release.js](https://github.com/vikadata/widget-cli/blob/v0.1.8/lib/commands/release.js)_
 
 ## `widget-cli rollback [PACKAGEID] [VERSION]`
 
@@ -184,7 +187,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v0.1.7/lib/commands/rollback.js)_
+_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v0.1.8/lib/commands/rollback.js)_
 
 ## `widget-cli start`
 
@@ -204,7 +207,7 @@ EXAMPLE
   Compiling...
 ```
 
-_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v0.1.7/lib/commands/start.js)_
+_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v0.1.8/lib/commands/start.js)_
 
 ## `widget-cli unpublish [PACKAGEID]`
 
@@ -228,5 +231,5 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v0.1.7/lib/commands/unpublish.js)_
+_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v0.1.8/lib/commands/unpublish.js)_
 <!-- commandsstop -->
