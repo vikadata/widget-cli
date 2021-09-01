@@ -341,12 +341,12 @@ Succeed!
     }
 
     version = this.checkVersion(version!);
-    setPackageJson('version', version);
     // build production code for release
     cli.action.start('compiling');
     await this.compile(globalFlag);
     cli.action.stop();
 
+    setPackageJson({ version });
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
     const codeSize = fse.statSync(releaseCodeBundle).size;
     const outputName = `${getName()}@${getVersion()}`;
@@ -356,6 +356,21 @@ Succeed!
       description, authorName, authorIcon, authorLink, authorEmail,
     } = widgetConfig;
     spaceId ??= widgetConfig.spaceId;
+
+    if (globalFlag) {
+      if (!authorName) {
+        authorName = await cli.prompt('Author name');
+      }
+  
+      if (!authorLink) {
+        authorLink = await cli.prompt('Author website');
+      }
+  
+      if (!authorEmail) {
+        authorEmail = await cli.prompt('Author Email');
+      }
+      setPackageJson({ authorName, authorLink, authorEmail });
+    }
 
     this.log();
     this.log(chalk.yellowBright('=== Package Details ==='));
@@ -388,11 +403,6 @@ Succeed!
     if (!packageId) {
       if (!globalFlag) {
         this.error('can not find packageId in config');
-      }
-
-      const goRelease = await cli.confirm('Release a new widget to global Y/n?');
-      if (!goRelease) {
-        return;
       }
 
       const randomId = generateRandomId('wpk', 10);
