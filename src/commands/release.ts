@@ -53,7 +53,6 @@ Succeed!
     token: flags.string({ char: 't', description: 'Your API Token' }),
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
     global: flags.boolean({ char: 'g', description: 'Release this widget package to global' }),
-    create: flags.boolean({ char: 'c', description: 'Create a new widget before release, only work in global mode' }),
     ['space-id']: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
     ['open-source']: flags.boolean({
       char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
