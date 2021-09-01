@@ -2,7 +2,8 @@ import cli from 'cli-ux';
 import * as Parser from '@oclif/parser';
 import { getPrivateConfig, getWidgetConfig } from './project';
 
-export async function hostPrompt(host?: string): Promise<string> {
+export async function hostPrompt(host: string | undefined): Promise<string> {
+  host ??= getPrivateConfig().host;
   if (!host) {
     host = await cli.prompt('Host of the server', { default: 'https://vika.cn' });
   }
@@ -12,23 +13,28 @@ export async function hostPrompt(host?: string): Promise<string> {
   return host!;
 }
 
-export async function tokenPrompt(token?: string): Promise<string> {
+export async function tokenPrompt(token: string | undefined): Promise<string> {
+  token ??= getPrivateConfig().token;
   if (!token) {
     token = await cli.prompt('Your API Token', { required: true, type: 'mask' });
   }
   return token!;
 }
 
-export async function packageIdPrompt(packageId?: string): Promise<string> {
+export async function packageIdPrompt(packageId: string | undefined, globalFlag: boolean | undefined): Promise<string> {
   if (packageId) {
     return packageId;
   }
 
-  const widgetConfig = getWidgetConfig();
-  packageId = global ? widgetConfig.globalPackageId : widgetConfig.packageId;
+  try {
+    const widgetConfig = getWidgetConfig();
+    packageId = globalFlag ? widgetConfig.globalPackageId : widgetConfig.packageId;
+  } catch (error) {
+    return await cli.prompt('The widget package id', { required: true });
+  }
 
   if (!packageId) {
-    packageId = await cli.prompt('Your API Token', { required: true, type: 'mask' });
+    return await cli.prompt('The widget package id', { required: true });
   }
   return packageId!;
 }

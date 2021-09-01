@@ -43,7 +43,12 @@ export function getVersion(): string {
 }
 
 export function getPrivateConfig(rootDir?: string): {token?: string; host?: string} {
-  rootDir = rootDir ?? findWidgetRootDir();
+  try {
+    rootDir = rootDir ?? findWidgetRootDir();
+  } catch (error) {
+    return {};
+  }
+
   const yamlPath = path.resolve(rootDir, Config.widgetYamlFileName);
   let file: string | null = null;
   try {
@@ -68,10 +73,9 @@ export function updatePrivateConfig({ token, host }: {token?: string; host?: str
 }
 
 export function startCompile(mode: 'prod' | 'dev', onSucceed: () => void) {
-  const projectDir = findWidgetRootDir();
+  const rootDir = findWidgetRootDir();
   const widgetConfig = getWidgetConfig();
-
-  const config = getWebpackConfig({ dir: projectDir, mode, config: widgetConfig, onSucceed });
+  const config = getWebpackConfig({ dir: rootDir, mode, config: widgetConfig, onSucceed });
 
   webpack(config, (err: any, stats: any) => {
     if (err) {

@@ -333,7 +333,7 @@ Succeed!
     let spaceId = parsed.flags['space-id'];
 
     // let { packageId, host, token } = await autoPrompt(parsed);
-    packageId = await packageIdPrompt(packageId);
+    packageId = await packageIdPrompt(packageId, globalFlag);
     host = await hostPrompt(host);
     token = await tokenPrompt(token);
 
@@ -361,6 +361,8 @@ Succeed!
     this.log();
     this.log(chalk.yellowBright('=== Package Details ==='));
     this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
+    this.log(`packageId:           ${packageId}`);
+    this.log(`spaceId:             ${spaceId}`);
     this.log(`version:             ${version}`);
     this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
     this.log(`description          ${description['zh-CN'] || description['en-US']}`);
@@ -370,7 +372,7 @@ Succeed!
     this.log(`authorIcon           ${authorIcon}`);
     this.log(`authorEmail          ${authorEmail}`);
     this.log(`authorLink           ${authorLink}`);
-    this.log(`releaseType          ${globalFlag ? 'space' : 'global'}`);
+    this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
 
     let secretKey;
     let sourceCodeBundle;

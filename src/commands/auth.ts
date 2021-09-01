@@ -2,8 +2,8 @@ import { Command, flags } from '@oclif/command';
 import axios from 'axios';
 import * as chalk from 'chalk';
 import { IApiWrapper } from '../interface/api';
-import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import { updatePrivateConfig } from '../utils/project';
+import { cli } from 'cli-ux';
 
 export default class Auth extends Command {
   static description = 'Login authentication, and cache the API Token';
@@ -40,10 +40,15 @@ Succeed!
   async run() {
     let { args: { token }, flags: { host }} = this.parse(Auth);
 
-    host = await hostPrompt(host);
-    token = await tokenPrompt(token);
+    if (!host) {
+      host = await cli.prompt('Host of the server', { default: 'https://vika.cn' })!;
+    }
 
-    await this.authorization(host, token);
+    if (!token) {
+      token = await cli.prompt('Your API Token', { required: true, type: 'mask' })!;
+    }
+
+    await this.authorization(host!, token);
 
     updatePrivateConfig({ host, token });
 
