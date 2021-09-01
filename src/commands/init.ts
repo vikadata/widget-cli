@@ -22,24 +22,20 @@ export default class Init extends Command {
   static description = 'Create a widget project and register it in your space';
 
   static examples = [
-    `$ widget-cli auth
+    `$ widget-cli init
 your widget: my-widget is successfully created, cd my-widget/ check it out!
 `,
   ];
 
   static flags = {
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
-    official: flags.boolean({ description: 'With official capacity', hidden: true }),
     name: flags.string({ char: 'c', description: 'Name your widget and project' }),
-    authorName: flags.string({ description: 'Author name' }),
-    authorLink: flags.string({ description: 'Author website' }),
-    authorEmail: flags.string({ description: 'Author Email' }),
+    official: flags.boolean({ description: 'With official capacity', hidden: true }),
+    template: flags.string({ char: 'u', description: 'The template code zip from vika or github' }),
+    packageId: flags.string({ char: 'p', description: 'The widget package id' }),
+    token: flags.string({ char: 't', description: 'Your API Token' }),
+    spaceId: flags.string({ char: 's', description: 'In which space to put the widget on' }),
   };
-
-  static args = [
-    { name: 'token', description: 'Your API Token' },
-    { name: 'spaceId', description: 'In which space to put the widget on' },
-  ];
 
   exec(cmd: string, destDir: string) {
     return new Promise((resolve, reject) => {
@@ -135,17 +131,25 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
   }
 
   async run() {
-    let { args: { token, spaceId }, flags: { host, official, name, authorName, authorLink, authorEmail }} = this.parse(Init);
+    let { flags: { token, spaceId, packageId, host, official, template, name }} = this.parse(Init);
     if (official) {
       this.log(chalk.yellowBright('Your are creating a official widget project!'));
     }
-
+    
     token = await tokenPrompt(token);
-
+    
     host = await hostPrompt(host);
-
+    
     if (!spaceId) {
       spaceId = await cli.prompt('Your target spaceId', { required: true });
+    }
+
+    if (!packageId) {
+      packageId = await cli.prompt('Your target packageId', { required: true });
+    }
+
+    if (!template) {
+      template = DEVELOPER_TEMPLATE_URL;
     }
 
     if (!name) {
@@ -155,53 +159,26 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       }
     }
 
-    if (!authorName) {
-      authorName = await cli.prompt('Author name');
-    }
-
-    if (!authorLink) {
-      authorLink = await cli.prompt('Author website');
-    }
-
-    if (!authorEmail) {
-      authorEmail = await cli.prompt('Author Email');
-    }
-
     const rootDir = path.resolve(process.cwd(), `./${name}`);
 
-    let result;
-    try {
-      result = await this.createWidgetPackage({
-        token, spaceId, host: host!, name: name!, authorName, authorEmail, authorLink,
-        releaseType: ReleaseType.Space,
-        packageType: official ? PackageType.Official : PackageType.Custom,
-      });
-    } catch (error) {
-      // remove destDir when fail to init widget package
-      fse.removeSync(rootDir);
-      throw error;
-    }
-    cli.action.start(`fetching template from ${DEVELOPER_TEMPLATE_URL}`);
-    await this.extractTemplate(DEVELOPER_TEMPLATE_URL, rootDir);
+    cli.action.start(`fetching template from ${template}`);
+    await this.extractTemplate(template, rootDir);
     cli.action.stop();
 
     const widgetConfig = require(path.join(rootDir, Config.widgetConfigFileName)) as IWidgetConfig;
     const nameCamelized = kebab2camel(name!);
     const newWidgetConfig = {
       ...widgetConfig,
-      packageId: result.packageId,
+      packageId,
       spaceId,
       name: { 'zh-CN': nameCamelized, 'en-US': nameCamelized },
-      authorName,
-      authorLink,
-      authorEmail,
       description: { 'zh-CN': `${nameCamelized} 的描述`, 'en-US': `${nameCamelized} description` },
     };
     fse.writeFileSync(path.join(rootDir, Config.widgetConfigFileName), JSON.stringify(newWidgetConfig, null, 2));
 
     updatePrivateConfig({ host, token }, rootDir);
 
-    setPackageJson('name', name!, rootDir);
+    setPackageJson({ name, version: '0.0.0' }, rootDir);
 
     try {
       await this.gitInit(rootDir);

@@ -18,10 +18,10 @@ export function getPackageJSON(rootDir?: string) {
   return require(path.join(rootDir, 'package.json'));
 }
 
-export function setPackageJson(key: string, value: string | number | null | JSON, rootDir?: string) {
+export function setPackageJson(params: Record<string, any>, rootDir?: string) {
   rootDir = rootDir ?? findWidgetRootDir();
-  const json = getPackageJSON(rootDir);
-  json[key] = value;
+  let json = getPackageJSON(rootDir);
+  json = { ...json, ...params };
   fse.writeFileSync(path.join(rootDir, 'package.json'), JSON.stringify(json, null, 2));
 }
 
