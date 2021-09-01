@@ -45,7 +45,7 @@ Compiling...
     const { flags: { port, protocol }} = this.parse(Start);
     let firstCompile = true;
 
-    startCompile('dev', () => {
+    startCompile('dev', false, () => {
       if (firstCompile) {
         this.log(chalk.cyanBright('************************'));
         this.log(chalk.yellowBright('Copy the following address and paste it into the developing widget container:'));

@@ -72,10 +72,10 @@ export function updatePrivateConfig({ token, host }: {token?: string; host?: str
   fse.outputFileSync(yamlPath, fileToSave);
 }
 
-export function startCompile(mode: 'prod' | 'dev', onSucceed: () => void) {
+export function startCompile(mode: 'prod' | 'dev', globalFlag: boolean, onSucceed: () => void) {
   const rootDir = findWidgetRootDir();
   const widgetConfig = getWidgetConfig();
-  const config = getWebpackConfig({ dir: rootDir, mode, config: widgetConfig, onSucceed });
+  const config = getWebpackConfig({ dir: rootDir, mode, globalFlag, config: widgetConfig, onSucceed });
 
   webpack(config, (err: any, stats: any) => {
     if (err) {

@@ -3,8 +3,8 @@ import * as webpack from 'webpack';
 import Config from './config';
 
 export const getWebpackConfig = (
-  { dir, mode, config, onSucceed }:
-  {dir: string; mode: 'dev' | 'prod'; config: any; onSucceed: () => void}
+  { dir, mode, globalFlag, config, onSucceed }:
+  {dir: string; globalFlag: boolean | undefined, mode: 'dev' | 'prod'; config: any; onSucceed: () => void}
 ): webpack.Configuration => ({
   context: path.resolve(__dirname),
   entry: {
@@ -88,7 +88,7 @@ export const getWebpackConfig = (
       },
     },
     new webpack.DefinePlugin({
-      'process.env.WIDGET_PACKAGE_ID': `'${config.packageId || 'wpkDeveloper'}'`,
+      'process.env.WIDGET_PACKAGE_ID': `'${(globalFlag ? config.globalPackageId : config.packageId) || 'wpkDeveloper'}'`,
     }),
   ],
 });

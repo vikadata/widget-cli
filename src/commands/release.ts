@@ -237,10 +237,10 @@ Succeed!
     return form;
   }
 
-  compile() {
+  compile(global: boolean) {
     return new Promise(resolve => {
       this.log(chalk.yellowBright('=== Compiling Widget ==='));
-      startCompile('prod', () => {
+      startCompile('prod', global, () => {
         this.log(`Compile Succeed: ${Config.releaseCodePath + Config.releaseCodeProdName}`);
         resolve(undefined);
       });
@@ -344,7 +344,7 @@ Succeed!
     setPackageJson('version', version);
     // build production code for release
     cli.action.start('compiling');
-    await this.compile();
+    await this.compile(globalFlag);
     cli.action.stop();
 
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
