@@ -375,13 +375,14 @@ Succeed!
     this.log();
     this.log(chalk.yellowBright('=== Package Details ==='));
     this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
+    this.log(`host:                ${host}`);
     this.log(`packageId:           ${packageId}`);
     this.log(`spaceId:             ${spaceId}`);
     this.log(`version:             ${version}`);
     this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
     this.log(`description          ${description['zh-CN'] || description['en-US']}`);
     this.log(`icon                 ${icon}`);
-    this.log(`cover                 ${icon}`);
+    this.log(`cover                ${cover}`);
     this.log(`authorName           ${authorName}`);
     this.log(`authorIcon           ${authorIcon}`);
     this.log(`authorEmail          ${authorEmail}`);
