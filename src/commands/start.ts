@@ -38,6 +38,9 @@ Compiling...
       http.createServer(app).listen(port);
     }
 
+    app.use('ping.png', (req, res) => {
+      res.sendFile(path.resolve(__dirname, '../../ping.png'));
+    });
     app.use(express.static(path.join(Config.releaseCodePath)));
   }
 
@@ -56,6 +59,11 @@ Compiling...
       }
       firstCompile = false;
     });
-    this.hostCompliedFile(port, protocol);
+    try {
+      this.hostCompliedFile(port, protocol);
+      this.hostCompliedFile(String(Number(port) + 1), 'http');
+    } catch (error) {
+      this.error(error as any);
+    }
   }
 }
