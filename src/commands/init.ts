@@ -48,7 +48,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
           console.error(stderr);
           return;
         }
-  
+
         this.log(stdout);
         resolve(undefined);
       });
@@ -112,13 +112,11 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     return data;
   }
 
-  async extractTemplate(url: string, dir: string) {
+  async extractTemplate(url: string, dir: string, name: string) {
     const zipFileBuffer = await this.fetchTemplate(url);
     const zip = new AdmZip(zipFileBuffer);
-    const entries = zip.getEntries();
-    const firstDir = entries.find(entry => entry.isDirectory)!;
-    const tempDir = path.join(os.tmpdir(), firstDir.entryName);
-    zip.extractAllTo(os.tmpdir() , true);
+    const tempDir = path.join(os.tmpdir(), name);
+    zip.extractAllTo(tempDir , true);
     await new Promise((resolve, reject) => {
       mv(tempDir, dir, (err) => {
         if (err) {
@@ -135,11 +133,11 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     if (official) {
       this.log(chalk.yellowBright('Your are creating a official widget project!'));
     }
-    
+
     token = await tokenPrompt(token);
-    
+
     host = await hostPrompt(host);
-    
+
     if (!spaceId) {
       spaceId = await cli.prompt('Your target spaceId', { required: true });
     }
@@ -162,7 +160,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     const rootDir = path.resolve(process.cwd(), `./${name}`);
 
     cli.action.start(`fetching template from ${template}`);
-    await this.extractTemplate(template, rootDir);
+    await this.extractTemplate(template, rootDir, name!);
     cli.action.stop();
 
     const widgetConfig = require(path.join(rootDir, Config.widgetConfigFileName)) as IWidgetConfig;
