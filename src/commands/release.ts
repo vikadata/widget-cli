@@ -79,16 +79,22 @@ Succeed!
     });
   }
 
-  pack(rootDir: string, outputName: string, files: string[], password?: string): Promise<archiver.Archiver> {
+  pack(rootDir: string, outputName: string, files: string[], fileName: string, password?: string): Promise<archiver.Archiver> {
     return new Promise((resolve, reject) => {
       const output = fse.createWriteStream(path.join(rootDir, outputName));
+      const outputDirPath = path.join(rootDir, fileName);
+      if (!fse.pathExistsSync(outputDirPath)) {
+        fse.mkdirSync(outputDirPath);
+        fse.mkdirSync(path.join(outputDirPath, fileName));
+      }
       const archive = password ?
-        archiver('zip-encrypted' as any, { zlib: { level: 9 }, encryptionMethod: 'aes256', password } as any) : 
+        archiver('zip-encrypted' as any, { zlib: { level: 9 }, encryptionMethod: 'aes256', password } as any) :
         archiver('zip', { zlib: { level: 9 }});
 
       // listen for all archive data to be written
       // 'close' event is fired only when a file descriptor is involved
       output.on('close', () => {
+        fse.remove(outputDirPath);
         resolve(archive);
       });
 
@@ -97,6 +103,7 @@ Succeed!
       // @see: https://nodejs.org/api/stream.html#stream_event_end
       output.on('end', () => {
         this.log('Data has been drained');
+        fse.remove(outputDirPath);
         resolve(archive);
       });
 
@@ -119,8 +126,9 @@ Succeed!
       archive.pipe(output);
 
       files.forEach(file => {
-        archive.append(fse.createReadStream(file), { name: path.relative(rootDir, file) });
+        fse.copySync(file, path.join(outputDirPath, fileName ,file));
       });
+      archive.directory(outputDirPath, false);
 
       archive.finalize();
     });
@@ -281,7 +289,7 @@ Succeed!
     this.log(chalk.greenBright(`📦  ${outputName}`));
 
     cli.action.start('packing source code');
-    await this.pack(rootDir, outputFile, files, secretKey);
+    await this.pack(rootDir, outputFile, files, outputName, secretKey);
     cli.action.stop();
 
     const packageSize = fse.statSync(outputFilePath).size;
@@ -361,11 +369,11 @@ Succeed!
       if (!authorName) {
         authorName = await cli.prompt('Author name');
       }
-  
+
       if (!authorLink) {
         authorLink = await cli.prompt('Author website');
       }
-  
+
       if (!authorEmail) {
         authorEmail = await cli.prompt('Author Email');
       }
@@ -428,7 +436,7 @@ Succeed!
         if (!goRelease) {
           return;
         }
-  
+
         await this.createWidgetPackage({
           packageId, spaceId, name, authorName, authorEmail, authorLink,
           releaseType: globalFlag ? ReleaseType.Global : ReleaseType.Space,
