@@ -16,8 +16,6 @@ import { kebab2camel } from '../utils/string';
 import { setPackageJson, updatePrivateConfig } from '../utils/project';
 import { PackageType, ReleaseType } from '../enum';
 
-const DEVELOPER_TEMPLATE_URL = 'https://s1.vika.cn/space/2021/08/19/8453385f68e54b478ef16f7fe159117a';
-
 export default class Init extends Command {
   static description = 'Create a widget project and register it in your space';
 
@@ -112,11 +110,13 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     return data;
   }
 
-  async extractTemplate(url: string, dir: string, name: string) {
+  async extractTemplate(url: string, dir: string) {
     const zipFileBuffer = await this.fetchTemplate(url);
     const zip = new AdmZip(zipFileBuffer);
-    const tempDir = path.join(os.tmpdir(), name);
-    zip.extractAllTo(tempDir , true);
+    const entries = zip.getEntries();
+    const firstDir = entries.find(entry => entry.isDirectory)!;
+    const tempDir = path.join(os.tmpdir(), firstDir.entryName);
+    zip.extractAllTo(os.tmpdir() , true);
     await new Promise((resolve, reject) => {
       mv(tempDir, dir, (err) => {
         if (err) {
@@ -147,7 +147,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     }
 
     if (!template) {
-      template = DEVELOPER_TEMPLATE_URL;
+      template = await cli.prompt('Your target template', { required: true });
     }
 
     if (!name) {
@@ -160,7 +160,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     const rootDir = path.resolve(process.cwd(), `./${name}`);
 
     cli.action.start(`fetching template from ${template}`);
-    await this.extractTemplate(template, rootDir, name!);
+    await this.extractTemplate(template!, rootDir);
     cli.action.stop();
 
     const widgetConfig = require(path.join(rootDir, Config.widgetConfigFileName)) as IWidgetConfig;
