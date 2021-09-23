@@ -29,6 +29,17 @@ export const getWebpackConfig = (
         test: /\.css$/i,
         use: ['style-loader', 'css-loader'],
       },
+      {
+        test: /\.jsx?$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cwd: path.resolve(__dirname),
+            presets: ['@babel/preset-env', '@babel/preset-react']
+          }
+        },
+        exclude: /node_modules/
+      }
     ],
   },
   externals: {
@@ -70,7 +81,7 @@ export const getWebpackConfig = (
     }
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.tsx', '.ts', '.js', '.jsx'],
   },
   output: {
     libraryTarget: 'umd',
