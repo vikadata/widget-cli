@@ -20,7 +20,7 @@ $ npm install -g @vika/widget-cli
 $ widget-cli COMMAND
 running command...
 $ widget-cli (-v|--version|version)
-@vika/widget-cli/0.1.10 darwin-x64 node-v14.16.0
+@vika/widget-cli/1.0.0 darwin-x64 node-v14.16.0
 $ widget-cli --help [COMMAND]
 USAGE
   $ widget-cli COMMAND
@@ -30,9 +30,8 @@ USAGE
 # Commands
 <!-- commands -->
 * [`widget-cli auth [TOKEN]`](#widget-cli-auth-token)
-* [`widget-cli ban [PACKAGEID]`](#widget-cli-ban-packageid)
 * [`widget-cli help [COMMAND]`](#widget-cli-help-command)
-* [`widget-cli init [TOKEN] [SPACEID]`](#widget-cli-init-token-spaceid)
+* [`widget-cli init`](#widget-cli-init)
 * [`widget-cli list-release [PACKAGEID]`](#widget-cli-list-release-packageid)
 * [`widget-cli release`](#widget-cli-release)
 * [`widget-cli rollback [PACKAGEID] [VERSION]`](#widget-cli-rollback-packageid-version)
@@ -58,25 +57,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v0.1.10/lib/commands/auth.js)_
-
-## `widget-cli ban [PACKAGEID]`
-
-```
-USAGE
-  $ widget-cli ban [PACKAGEID]
-
-ARGUMENTS
-  PACKAGEID  The widget package you want to ban
-
-OPTIONS
-  -g, --global       Specify global widget package
-  -h, --host=host    Specifies the host of the server, such as https://vika.cn
-  -t, --token=token  Your API Token
-  --unban            Unban package
-```
-
-_See code: [lib/commands/ban.js](https://github.com/vikadata/widget-cli/blob/v0.1.10/lib/commands/ban.js)_
+_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v1.0.0/lib/commands/auth.js)_
 
 ## `widget-cli help [COMMAND]`
 
@@ -95,31 +76,28 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.2/src/commands/help.ts)_
 
-## `widget-cli init [TOKEN] [SPACEID]`
+## `widget-cli init`
 
 Create a widget project and register it in your space
 
 ```
 USAGE
-  $ widget-cli init [TOKEN] [SPACEID]
-
-ARGUMENTS
-  TOKEN    Your API Token
-  SPACEID  In which space to put the widget on
+  $ widget-cli init
 
 OPTIONS
   -c, --name=name            Name your widget and project
   -h, --host=host            Specifies the host of the server, such as https://vika.cn
-  --authorEmail=authorEmail  Author Email
-  --authorLink=authorLink    Author website
-  --authorName=authorName    Author name
+  -p, --packageId=packageId  The widget package id
+  -s, --spaceId=spaceId      In which space to put the widget on
+  -t, --token=token          Your API Token
+  -u, --template=template    The template code zip from vika or github
 
 EXAMPLE
-  $ widget-cli auth
+  $ widget-cli init
   your widget: my-widget is successfully created, cd my-widget/ check it out!
 ```
 
-_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v0.1.10/lib/commands/init.js)_
+_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v1.0.0/lib/commands/init.js)_
 
 ## `widget-cli list-release [PACKAGEID]`
 
@@ -142,7 +120,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v0.1.10/lib/commands/list-release.js)_
+_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v1.0.0/lib/commands/list-release.js)_
 
 ## `widget-cli release`
 
@@ -163,7 +141,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/release.js](https://github.com/vikadata/widget-cli/blob/v0.1.10/lib/commands/release.js)_
+_See code: [lib/commands/release.js](https://github.com/vikadata/widget-cli/blob/v1.0.0/lib/commands/release.js)_
 
 ## `widget-cli rollback [PACKAGEID] [VERSION]`
 
@@ -187,7 +165,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v0.1.10/lib/commands/rollback.js)_
+_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v1.0.0/lib/commands/rollback.js)_
 
 ## `widget-cli start`
 
@@ -207,7 +185,7 @@ EXAMPLE
   Compiling...
 ```
 
-_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v0.1.10/lib/commands/start.js)_
+_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v1.0.0/lib/commands/start.js)_
 
 ## `widget-cli unpublish [PACKAGEID]`
 
@@ -224,12 +202,12 @@ OPTIONS
   -g, --global       Specify global widget package
   -h, --host=host    Specifies the host of the server, such as https://vika.cn
   -t, --token=token  Your API Token
-  --no-confirm       Do not show confirm
+  --noConfirm        Do not show confirm
 
 EXAMPLE
   $ widget-cli unpublish
   Succeed!
 ```
 
-_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v0.1.10/lib/commands/unpublish.js)_
+_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v1.0.0/lib/commands/unpublish.js)_
 <!-- commandsstop -->
