@@ -25,10 +25,10 @@ export function setPackageJson(params: Record<string, any>, rootDir?: string) {
   fse.writeFileSync(path.join(rootDir, 'package.json'), JSON.stringify(json, null, 2));
 }
 
-export function setWidgetConfig(key: keyof IWidgetConfig, value: string | {[key: string]: string}, rootDir?: string) {
+export function setWidgetConfig(params: Partial<IWidgetConfig>, rootDir?: string) {
   rootDir = rootDir ?? findWidgetRootDir();
-  const json = getWidgetConfig(rootDir);
-  json[key] = value as any;
+  let json = getWidgetConfig(rootDir);
+  json = { ...json, ...params };
   fse.writeFileSync(path.join(rootDir, Config.widgetConfigFileName), JSON.stringify(json, null, 2));
 }
 
