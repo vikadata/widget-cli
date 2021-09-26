@@ -53,8 +53,8 @@ Succeed!
     token: flags.string({ char: 't', description: 'Your API Token' }),
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
     global: flags.boolean({ char: 'g', description: 'Release this widget package to global' }),
-    ['space-id']: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
-    ['open-source']: flags.boolean({
+    spaceId: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
+    openSource: flags.boolean({
       char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
     }),
   };
@@ -335,9 +335,7 @@ Succeed!
 
   async run() {
     const parsed = this.parse(Release);
-    let { args: { packageId }, flags: { version, global: globalFlag, host, token }} = parsed;
-    const openSource = parsed.flags['open-source'];
-    let spaceId = parsed.flags['space-id'];
+    let { args: { packageId }, flags: { version, global: globalFlag, spaceId, openSource, host, token }} = parsed;
 
     // let { packageId, host, token } = await autoPrompt(parsed);
     packageId = await packageIdPrompt(packageId, globalFlag);

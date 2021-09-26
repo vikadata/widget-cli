@@ -18,7 +18,7 @@ Succeed!
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
     global: flags.boolean({ char: 'g', description: 'Specify global widget package' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
-    'no-confirm': flags.boolean({ description: 'Do not show confirm' }),
+    noConfirm: flags.boolean({ description: 'Do not show confirm' }),
   };
 
   static args = [
@@ -57,7 +57,7 @@ Succeed!
 
   async run() {
     const parsed = this.parse(Unpublish);
-    const noConfirm = parsed.flags['no-confirm'];
+    const noConfirm = parsed.flags.noConfirm;
     const { host, token, packageId } = await autoPrompt(parsed);
 
     const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
