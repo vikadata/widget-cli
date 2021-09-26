@@ -21,24 +21,6 @@ export async function tokenPrompt(token: string | undefined): Promise<string> {
   return token!;
 }
 
-export async function packageIdPrompt(packageId: string | undefined, globalFlag: boolean | undefined): Promise<string> {
-  if (packageId) {
-    return packageId;
-  }
-
-  try {
-    const widgetConfig = getWidgetConfig();
-    packageId = globalFlag ? widgetConfig.globalPackageId : widgetConfig.packageId;
-  } catch (error) {
-    return await cli.prompt('The widget package id', { required: true });
-  }
-
-  if (!packageId) {
-    return await cli.prompt('The widget package id', { required: true });
-  }
-  return packageId!;
-}
-
 /**
  * Return packageId/host/token in widgetConfig or prompt it
  * if user specify packageId, use the packageId

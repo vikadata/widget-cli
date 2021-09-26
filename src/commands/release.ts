@@ -17,7 +17,7 @@ import { generateRandomId, generateRandomString } from '../utils/id';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
 import { PackageType, ReleaseType } from '../enum';
-import { hostPrompt, packageIdPrompt, tokenPrompt } from '../utils/prompt';
+import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
@@ -124,6 +124,15 @@ Succeed!
 
       archive.finalize();
     });
+  }
+
+  getPackageId(packageId: string | undefined, globalFlag: boolean | undefined) {
+    if (packageId) {
+      return packageId;
+    }
+  
+    const widgetConfig = getWidgetConfig();
+    return globalFlag ? widgetConfig.globalPackageId : widgetConfig.packageId;
   }
 
   getProjectFiles(rootDir: string): Promise<string[]> {
@@ -330,7 +339,7 @@ Succeed!
     let { args: { packageId }, flags: { version, global: globalFlag, spaceId, openSource, host, token }} = parsed;
 
     // let { packageId, host, token } = await autoPrompt(parsed);
-    packageId = await packageIdPrompt(packageId, globalFlag);
+    packageId = this.getPackageId(packageId, globalFlag);
     host = await hostPrompt(host);
     token = await tokenPrompt(token);
 
@@ -367,7 +376,7 @@ Succeed!
       if (!authorEmail) {
         authorEmail = await cli.prompt('Author Email');
       }
-      setPackageJson({ authorName, authorLink, authorEmail });
+      setWidgetConfig({ authorName, authorLink, authorEmail });
     }
 
     this.log();
@@ -417,7 +426,7 @@ Succeed!
       }, { host, token });
       packageId = result.packageId;
       // save globalPackageId to config
-      setWidgetConfig('globalPackageId', packageId);
+      setWidgetConfig({ globalPackageId: packageId });
     } else {
       // check if package not exit then create it
       const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
