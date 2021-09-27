@@ -138,7 +138,7 @@ Succeed!
     if (packageId) {
       return packageId;
     }
-  
+
     const widgetConfig = getWidgetConfig();
     return globalFlag ? widgetConfig.globalPackageId : widgetConfig.packageId;
   }
@@ -364,7 +364,7 @@ Succeed!
     setPackageJson({ version });
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
     const codeSize = fse.statSync(releaseCodeBundle).size;
-    const outputName = `${getName()}@${getVersion()}`;
+    const outputName = `${getName()}@${version}`;
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,
