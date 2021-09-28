@@ -106,9 +106,9 @@ export const getWebpackConfig = (
     plugins: [
       {
         apply: (compiler: any) => {
-          compiler.hooks.afterEmit.tap('CompileSucceed', () => {
+          compiler.hooks.afterEmit.tap('CompileSucceed', ({ errors }: webpack.Compilation) => {
             setTimeout(() => {
-              onSucceed();
+              errors.length === 0 && onSucceed();
             });
           });
         },
