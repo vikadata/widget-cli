@@ -71,6 +71,7 @@
     "/bin",
     "/lib",
     "/ssl",
+    "/ping.png",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
