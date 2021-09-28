@@ -58,6 +58,7 @@ Compiling...
         this.log(chalk.cyanBright('************************'));
       } else {
         this.log('Code has been recompiled');
+        this.log(chalk.yellowBright(`${protocol}://localhost:${port}/${Config.releaseCodeName}`));
       }
       firstCompile = false;
     });
