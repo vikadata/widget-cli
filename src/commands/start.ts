@@ -49,7 +49,7 @@ Compiling...
     let firstCompile = true;
     const widgetConfig = getWidgetConfig();
 
-    startCompile('dev', false, () => {
+    startCompile('dev', false, widgetConfig, () => {
       if (firstCompile) {
         this.log(chalk.cyanBright('************************'));
         this.log(chalk.yellowBright(`Current packageID: ${widgetConfig.packageId}`));
