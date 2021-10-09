@@ -72,9 +72,8 @@ export function updatePrivateConfig({ token, host }: {token?: string; host?: str
   fse.outputFileSync(yamlPath, fileToSave);
 }
 
-export function startCompile(mode: 'prod' | 'dev', globalFlag: boolean, onSucceed: () => void) {
+export function startCompile(mode: 'prod' | 'dev', globalFlag: boolean, widgetConfig: IWidgetConfig, onSucceed: () => void) {
   const rootDir = findWidgetRootDir();
-  const widgetConfig = getWidgetConfig();
   const config = getWebpackConfig({ dir: rootDir, mode, globalFlag, config: widgetConfig, onSucceed });
 
   webpack(config, (err: any, stats: any) => {

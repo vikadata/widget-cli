@@ -19,6 +19,7 @@ import Config from '../config';
 import { PackageType, ReleaseType } from '../enum';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
+import { IWidgetConfig } from '../interface/widget_config';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
 
@@ -254,10 +255,10 @@ Succeed!
     return form;
   }
 
-  compile(global: boolean) {
+  compile(global: boolean, widgetConfig: IWidgetConfig) {
     return new Promise(resolve => {
       this.log(chalk.yellowBright('=== Compiling Widget ==='));
-      startCompile('prod', global, () => {
+      startCompile('prod', global, widgetConfig, () => {
         this.log(`Compile Succeed: ${Config.releaseCodePath + Config.releaseCodeProdName}`);
         resolve(undefined);
       });
@@ -356,15 +357,8 @@ Succeed!
     }
 
     version = this.checkVersion(version!);
-    // build production code for release
-    cli.action.start('compiling');
-    await this.compile(globalFlag);
-    cli.action.stop();
 
     setPackageJson({ version });
-    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
-    const codeSize = fse.statSync(releaseCodeBundle).size;
-    const outputName = `${getName()}@${version}`;
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,
@@ -386,34 +380,6 @@ Succeed!
       }
       setWidgetConfig({ authorName, authorLink, authorEmail });
     }
-
-    this.log();
-    this.log(chalk.yellowBright('=== Package Details ==='));
-    this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
-    this.log(`host:                ${host}`);
-    this.log(`packageId:           ${packageId}`);
-    this.log(`spaceId:             ${spaceId}`);
-    this.log(`version:             ${version}`);
-    this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
-    this.log(`description          ${description['zh-CN'] || description['en-US']}`);
-    this.log(`icon                 ${icon}`);
-    this.log(`cover                ${cover}`);
-    this.log(`authorName           ${authorName}`);
-    this.log(`authorIcon           ${authorIcon}`);
-    this.log(`authorEmail          ${authorEmail}`);
-    this.log(`authorLink           ${authorLink}`);
-    this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
-
-    let secretKey;
-    let sourceCodeBundle;
-    if (openSource) {
-      // pack sourceCode to zip
-      const result = await this.packSourceCode({ outputName });
-      this.logSourceCode(result);
-      secretKey = result.secretKey;
-      sourceCodeBundle = result.outputFile;
-    }
-    this.log();
 
     // if there is no packageId provide, we will create global package first
     if (!packageId) {
@@ -451,6 +417,43 @@ Succeed!
         }, { host, token });
       }
     }
+
+    // build production code for release
+    cli.action.start('compiling');
+    await this.compile(globalFlag, {...widgetConfig, [globalFlag ? 'globalPackageId' : 'packageId']: packageId});
+    cli.action.stop();
+
+    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
+    const codeSize = fse.statSync(releaseCodeBundle).size;
+    const outputName = `${getName()}@${version}`;
+
+    this.log();
+    this.log(chalk.yellowBright('=== Package Details ==='));
+    this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
+    this.log(`host:                ${host}`);
+    this.log(`packageId:           ${packageId}`);
+    this.log(`spaceId:             ${spaceId}`);
+    this.log(`version:             ${version}`);
+    this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
+    this.log(`description          ${description['zh-CN'] || description['en-US']}`);
+    this.log(`icon                 ${icon}`);
+    this.log(`cover                ${cover}`);
+    this.log(`authorName           ${authorName}`);
+    this.log(`authorIcon           ${authorIcon}`);
+    this.log(`authorEmail          ${authorEmail}`);
+    this.log(`authorLink           ${authorLink}`);
+    this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
+
+    let secretKey;
+    let sourceCodeBundle;
+    if (openSource) {
+      // pack sourceCode to zip
+      const result = await this.packSourceCode({ outputName });
+      this.logSourceCode(result);
+      secretKey = result.secretKey;
+      sourceCodeBundle = result.outputFile;
+    }
+    this.log();
 
     const formData = this.buildFormData({
       spaceId,
