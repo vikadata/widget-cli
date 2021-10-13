@@ -7,10 +7,14 @@ import * as path from 'path';
 import * as express from 'express';
 import Config from '../config';
 import { getWidgetConfig, startCompile } from '../utils/project';
+import { createWidgetCliSocket } from '../utils/socket';
+import { IWidgetCliSocket } from '../interface/socket';
 
 const sslDir = path.resolve(__dirname, '../../ssl');
 
 export default class Start extends Command {
+  private widgetCliSocket: IWidgetCliSocket | undefined;
+
   static description = 'Start current widget project in develop mode';
 
   static examples = [
@@ -27,21 +31,24 @@ Compiling...
 
   hostCompliedFile(port: string, protocol: string) {
     const app = express();
+    let server = null;
 
     if (protocol === 'https') {
       const privateKey = fse.readFileSync(path.resolve(sslDir, 'server.key'), 'utf8');
       const certificate = fse.readFileSync(path.resolve(sslDir, 'server.crt'), 'utf8');
-      const credentials = { key: privateKey, cert: certificate };
+      const credentials = { key: privateKey, cert: certificate,  };
 
-      https.createServer(credentials, app).listen(port);
+      server = https.createServer(credentials, app)
     } else {
-      http.createServer(app).listen(port);
+      server = http.createServer(app);
     }
+    server.listen(port);
 
     app.use('ping.png', (req, res) => {
       res.sendFile(path.resolve(__dirname, '../../ping.png'));
     });
     app.use(express.static(path.join(Config.releaseCodePath)));
+    this.widgetCliSocket = createWidgetCliSocket(server);
   }
 
   async run() {
@@ -59,6 +66,7 @@ Compiling...
       } else {
         this.log('Code has been recompiled');
         this.log(chalk.yellowBright(`${protocol}://localhost:${port}/${Config.releaseCodeName}`));
+        this.widgetCliSocket?.liveReload()
       }
       firstCompile = false;
     });
