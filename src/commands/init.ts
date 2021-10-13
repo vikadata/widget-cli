@@ -167,6 +167,9 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     const nameCamelized = kebab2camel(name!);
     const newWidgetConfig = {
       ...widgetConfig,
+      authorEmail: undefined,
+      authorLink: undefined,
+      authorName: undefined,
       packageId,
       spaceId,
       name: { 'zh-CN': nameCamelized, 'en-US': nameCamelized },
