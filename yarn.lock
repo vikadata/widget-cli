@@ -1083,7 +1083,7 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@oclif/command@^1", "@oclif/command@^1.5.20", "@oclif/command@^1.6.0", "@oclif/command@^1.8.0":
+"@oclif/command@^1", "@oclif/command@^1.5.10", "@oclif/command@^1.5.20", "@oclif/command@^1.6.0", "@oclif/command@^1.8.0":
   version "1.8.0"
   resolved "https://registry.npm.taobao.org/@oclif/command/download/@oclif/command-1.8.0.tgz"
   integrity sha1-waSZsQ0m6dGmERkKgQBViazLszk=
@@ -1095,7 +1095,7 @@
     debug "^4.1.1"
     semver "^7.3.2"
 
-"@oclif/config@^1", "@oclif/config@^1.15.1", "@oclif/config@^1.17.0":
+"@oclif/config@^1", "@oclif/config@^1.12.8", "@oclif/config@^1.15.1", "@oclif/config@^1.17.0":
   version "1.17.0"
   resolved "https://registry.nlark.com/@oclif/config/download/@oclif/config-1.17.0.tgz"
   integrity sha1-uoY5EYYzECp+SBdgxQBUYj0J/Ks=
@@ -1167,6 +1167,21 @@
     strip-ansi "^6.0.0"
     widest-line "^3.1.0"
     wrap-ansi "^4.0.0"
+
+"@oclif/plugin-warn-if-update-available@^1.7.0":
+  version "1.7.0"
+  resolved "https://registry.npmmirror.com/@oclif/plugin-warn-if-update-available/download/@oclif/plugin-warn-if-update-available-1.7.0.tgz#5a72abe39ce0b831eb4ae81cb64eb4b9f3ea424a"
+  integrity sha1-WnKr45zguDHrSugctk60ufPqQko=
+  dependencies:
+    "@oclif/command" "^1.5.10"
+    "@oclif/config" "^1.12.8"
+    "@oclif/errors" "^1.2.2"
+    chalk "^2.4.1"
+    debug "^4.1.0"
+    fs-extra "^7.0.0"
+    http-call "^5.2.2"
+    lodash.template "^4.4.0"
+    semver "^5.6.0"
 
 "@oclif/screen@^1.0.3":
   version "1.0.4"
@@ -2947,6 +2962,15 @@ fs-extra@^6.0.1:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
+fs-extra@^7.0.0:
+  version "7.0.1"
+  resolved "https://registry.nlark.com/fs-extra/download/fs-extra-7.0.1.tgz#4f189c44aa123b895f722804f55ea23eadc348e9"
+  integrity sha1-TxicRKoSO4lfcigE9V6iPq3DSOk=
+  dependencies:
+    graceful-fs "^4.1.2"
+    jsonfile "^4.0.0"
+    universalify "^0.1.0"
+
 fs-extra@^8.1:
   version "8.1.0"
   resolved "https://registry.nlark.com/fs-extra/download/fs-extra-8.1.0.tgz"
@@ -3175,9 +3199,9 @@ html-escaper@^2.0.0:
   resolved "https://registry.npm.taobao.org/html-escaper/download/html-escaper-2.0.2.tgz?cache=0&sync_timestamp=1613643546928&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fhtml-escaper%2Fdownload%2Fhtml-escaper-2.0.2.tgz"
   integrity sha1-39YAJ9o2o238viNiYsAKWCJoFFM=
 
-http-call@^5.1.2:
+http-call@^5.1.2, http-call@^5.2.2:
   version "5.3.0"
-  resolved "https://registry.npm.taobao.org/http-call/download/http-call-5.3.0.tgz"
+  resolved "https://registry.npm.taobao.org/http-call/download/http-call-5.3.0.tgz#4ded815b13f423de176eb0942d69c43b25b148db"
   integrity sha1-Te2BWxP0I94XbrCULWnEOyWxSNs=
   dependencies:
     content-type "^1.0.4"

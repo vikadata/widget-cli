@@ -18,6 +18,7 @@
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^3",
+    "@oclif/plugin-warn-if-update-available": "^1.7.0",
     "@types/adm-zip": "^0.4.34",
     "@types/archiver": "^5.1.1",
     "@types/express": "^4.17.13",
@@ -88,8 +89,14 @@
     "commands": "./lib/commands",
     "bin": "widget-cli",
     "plugins": [
-      "@oclif/plugin-help"
+      "@oclif/plugin-help",
+      "@oclif/plugin-warn-if-update-available"
     ],
+    "warn-if-update-available": {
+      "timeoutInDays": 0,
+      "message": "<%= config.name %> update available from <%= chalk.greenBright(config.version) %> to <%= chalk.greenBright(latest) %>.",
+      "registry": "https://nexus.vika.ltd/repository/vika-npm-local/"
+    },
     "hooks": {
       "init": "./lib/hooks/init"
     }
