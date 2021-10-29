@@ -152,10 +152,11 @@ Succeed!
 
     return new Promise((resolve, reject) => {
       glob('**/*', {
+        dot: true,
         cwd: rootDir,
         nodir: true,
         // hard code node_modules for performance
-        ignore: ['node_modules/**'],
+        ignore: ['node_modules/**', '.git'],
       }, (err, files) => {
         if (err) {
           reject(err);
