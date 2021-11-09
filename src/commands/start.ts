@@ -36,9 +36,9 @@ Compiling...
     if (protocol === 'https') {
       const privateKey = fse.readFileSync(path.resolve(sslDir, 'server.key'), 'utf8');
       const certificate = fse.readFileSync(path.resolve(sslDir, 'server.crt'), 'utf8');
-      const credentials = { key: privateKey, cert: certificate,  };
+      const credentials = { key: privateKey, cert: certificate };
 
-      server = https.createServer(credentials, app)
+      server = https.createServer(credentials, app);
     } else {
       server = http.createServer(app);
     }
@@ -66,7 +66,7 @@ Compiling...
       } else {
         this.log('Code has been recompiled');
         this.log(chalk.yellowBright(`${protocol}://localhost:${port}/${Config.releaseCodeName}`));
-        this.widgetCliSocket?.liveReload()
+        this.widgetCliSocket?.liveReload();
       }
       firstCompile = false;
     });
