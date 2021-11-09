@@ -1,5 +1,5 @@
-import { Server } from 'socket.io'
-import { SocketType } from "../enum";
+import { Server } from 'socket.io';
+import { SocketType } from '../enum';
 
 export interface IWidgetCliSocket {
   widgetCliSocket: Server;

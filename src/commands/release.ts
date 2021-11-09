@@ -421,7 +421,7 @@ Succeed!
 
     // build production code for release
     cli.action.start('compiling');
-    await this.compile(globalFlag, {...widgetConfig, [globalFlag ? 'globalPackageId' : 'packageId']: packageId});
+    await this.compile(globalFlag, { ...widgetConfig, [globalFlag ? 'globalPackageId' : 'packageId']: packageId });
     cli.action.stop();
 
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
