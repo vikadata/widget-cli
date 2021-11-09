@@ -1,14 +1,15 @@
 {
-  "name": "@vika/widget-cli",
+  "name": "@vikadata/widget-cli",
   "description": "help you to build awesome vika widget",
-  "version": "1.0.2",
+  "version": "0.0.1",
   "author": "vikadata",
   "bin": {
     "widget-cli": "./bin/run"
   },
   "bugs": "https://github.com/vikadata/widget-cli/issues",
   "publishConfig": {
-    "registry": "https://nexus.vika.ltd/repository/vika-npm-local/"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "dependencies": {
     "@babel/core": "^7.15.5",
