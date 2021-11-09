@@ -70,29 +70,29 @@ export const getWebpackConfig = (
         amd: 'react-dom',
         root: '_ReactDom',
       },
-      '@vika/components': {
-        commonjs: '@vika/components',
-        commonjs2: '@vika/components',
-        amd: '@vika/components',
-        root: '_@vika/components',
+      '@vikadata/components': {
+        commonjs: '@vikadata/components',
+        commonjs2: '@vikadata/components',
+        amd: '@vikadata/components',
+        root: '_@vikadata/components',
       },
-      '@vika/core': {
-        commonjs: '@vika/core',
-        commonjs2: '@vika/core',
-        amd: '@vika/core',
-        root: '_@vika/core',
+      '@vikadata/core': {
+        commonjs: '@vikadata/core',
+        commonjs2: '@vikadata/core',
+        amd: '@vikadata/core',
+        root: '_@vikadata/core',
       },
-      '@vika/widget-sdk': {
-        commonjs: '@vika/widget-sdk',
-        commonjs2: '@vika/widget-sdk',
-        amd: '@vika/widget-sdk',
-        root: '_@vika/widget-sdk',
+      '@vikadata/widget-sdk': {
+        commonjs: '@vikadata/widget-sdk',
+        commonjs2: '@vikadata/widget-sdk',
+        amd: '@vikadata/widget-sdk',
+        root: '_@vikadata/widget-sdk',
       },
-      '@vika/icons': {
-        commonjs: '@vika/icons',
-        commonjs2: '@vika/icons',
-        amd: '@vika/icons',
-        root: '_@vika/icons',
+      '@vikadata/icons': {
+        commonjs: '@vikadata/icons',
+        commonjs2: '@vikadata/icons',
+        amd: '@vikadata/icons',
+        root: '_@vikadata/icons',
       }
     },
     resolve: {
