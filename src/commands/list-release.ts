@@ -106,7 +106,7 @@ Succeed!
       },
       version: {
         get: (row: any) => {
-          return this.tableNoDataOutput(row.version);
+          return `${this.tableNoDataOutput(row.version)}${row.currentVersion ? '（current）' : ''}`;
         }
       },
       releaseCodeBundle: {
