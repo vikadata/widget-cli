@@ -1,7 +1,7 @@
 {
   "name": "@vikadata/widget-cli",
   "description": "help you to build awesome vika widget",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "vikadata",
   "bin": {
     "widget-cli": "./bin/run"
@@ -95,7 +95,7 @@
     ],
     "warn-if-update-available": {
       "timeoutInDays": 7,
-      "message": "<%= config.name %> update available from <%= chalk.greenBright(config.version) %> to <%= chalk.greenBright(latest) %>.\nRun <%= chalk.greenBright('npm install -g' + config.name)%> to update!",
+      "message": "<%= config.name %> update available from <%= chalk.greenBright(config.version) %> to <%= chalk.greenBright(latest) %>.\nRun <%= chalk.greenBright('npm install -g ' + config.name)%> to update!",
       "registry": "https://registry.npmjs.org/"
     },
     "hooks": {
