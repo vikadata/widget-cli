@@ -439,9 +439,9 @@ Succeed!
     this.log(`description          ${description['zh-CN'] || description['en-US']}`);
     this.log(`icon                 ${icon}`);
     this.log(`cover                ${cover}`);
-    this.log(`authorName           ${authorName}`);
-    this.log(`authorIcon           ${authorIcon}`);
-    this.log(`authorEmail          ${authorEmail}`);
+    authorName && this.log(`authorName           ${authorName}`);
+    authorIcon && this.log(`authorIcon           ${authorIcon}`);
+    authorEmail && this.log(`authorEmail          ${authorEmail}`);
     this.log(`authorLink           ${authorLink}`);
     this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
 
