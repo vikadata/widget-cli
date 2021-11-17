@@ -39,16 +39,15 @@ Compiling...
       const credentials = { key: privateKey, cert: certificate };
 
       server = https.createServer(credentials, app);
+      app.use(express.static(path.join(Config.releaseCodePath)));
+      this.widgetCliSocket = createWidgetCliSocket(server);
     } else {
       server = http.createServer(app);
+      app.get('/ping.png', (req, res) => {
+        res.sendFile(path.resolve(__dirname, '../../ping.png'));
+      });
     }
     server.listen(port);
-
-    app.use('ping.png', (req, res) => {
-      res.sendFile(path.resolve(__dirname, '../../ping.png'));
-    });
-    app.use(express.static(path.join(Config.releaseCodePath)));
-    this.widgetCliSocket = createWidgetCliSocket(server);
   }
 
   async run() {
