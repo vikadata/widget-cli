@@ -156,7 +156,7 @@ Succeed!
         cwd: rootDir,
         nodir: true,
         // hard code node_modules for performance
-        ignore: ['node_modules/**', '.git'],
+        ignore: ['node_modules/**', '.git/**'],
       }, (err, files) => {
         if (err) {
           reject(err);
