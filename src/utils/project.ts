@@ -22,6 +22,7 @@ export function setPackageJson(params: Record<string, any>, rootDir?: string) {
   rootDir = rootDir ?? findWidgetRootDir();
   let json = getPackageJSON(rootDir);
   json = { ...json, ...params };
+  delete json.name;
   fse.writeFileSync(path.join(rootDir, 'package.json'), JSON.stringify(json, null, 2));
 }
 
