@@ -179,7 +179,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
 
     updatePrivateConfig({ host, token }, rootDir);
 
-    setPackageJson({ name, version: '0.0.0' }, rootDir);
+    setPackageJson({ version: '0.0.0' }, rootDir);
 
     try {
       await this.gitInit(rootDir);
