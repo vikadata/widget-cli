@@ -11,7 +11,7 @@ import * as chalk from 'chalk';
 import * as semver from 'semver';
 import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
-import { getName, getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
+import { getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { generateRandomId, generateRandomString } from '../utils/id';
 import { IApiWrapper } from '../interface/api';
@@ -426,7 +426,7 @@ Succeed!
 
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
     const codeSize = fse.statSync(releaseCodeBundle).size;
-    const outputName = `${getName()}@${version}`;
+    const outputName = `${packageId}@${version}`;
 
     this.log();
     this.log(chalk.yellowBright('=== Package Details ==='));
