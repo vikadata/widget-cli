@@ -170,6 +170,7 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       authorEmail: undefined,
       authorLink: undefined,
       authorName: undefined,
+      globalPackageId: undefined,
       packageId,
       spaceId,
       name: { 'zh-CN': nameCamelized, 'en-US': nameCamelized },
