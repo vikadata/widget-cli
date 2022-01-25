@@ -40,14 +40,7 @@ export const getWebpackConfig = (
         {
           test: /\.css$/i,
           use: ['style-loader', {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                getLocalIdent: (context: any, localIdentName: any, localName: string) => {
-                  return packageId + localName;
-                },
-              }
-            }
+            loader: 'css-loader'
           }]
         },
         {
