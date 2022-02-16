@@ -38,6 +38,7 @@ interface IReleaseParams {
 	releaseCodeBundle: string;
 	sourceCodeBundle?: string;
 	secretKey?: string;
+  sandbox?: boolean;
 }
 
 export default class Release extends ListRelease {
@@ -471,6 +472,7 @@ Succeed!
       secretKey,
       sourceCodeBundle,
       releaseCodeBundle,
+      sandbox: widgetConfig.sandbox
     });
     cli.action.start('uploading');
     await this.releaseWidget(formData, { host, token });
