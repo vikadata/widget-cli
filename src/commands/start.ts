@@ -9,6 +9,7 @@ import Config from '../config';
 import { getWidgetConfig, startCompile } from '../utils/project';
 import { createWidgetCliSocket } from '../utils/socket';
 import { IWidgetCliSocket } from '../interface/socket';
+import { cors } from '../utils/cors';
 
 const sslDir = path.resolve(__dirname, '../../ssl');
 
@@ -40,22 +41,15 @@ Compiling...
 
       server = https.createServer(credentials, app);
       app.use(express.static(path.join(Config.releaseCodePath)));
+      app.use(cors());
       this.widgetCliSocket = createWidgetCliSocket(server);
       // sandbox
       const widgetConfig = getWidgetConfig();
-      app.all('/widgetConfig', (req, res) => {
-        res.set({
-          'Access-Control-Allow-Origin': req.headers.origin || '*',
-          'Access-Control-Allow-Headers': '*',
+      app.get('/widgetConfig', (req, res) => {
+        res.send({
+          sandbox: widgetConfig.sandbox,
+          packageId: widgetConfig.packageId
         });
-        if (req.method.toLocaleLowerCase() === 'options') {
-          res.sendStatus(200);
-        } else {
-          res.send({
-            sandbox: widgetConfig.sandbox,
-            packageId: widgetConfig.packageId
-          });
-        }
       });
     } else {
       server = http.createServer(app);
