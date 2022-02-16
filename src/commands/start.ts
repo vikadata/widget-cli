@@ -41,6 +41,22 @@ Compiling...
       server = https.createServer(credentials, app);
       app.use(express.static(path.join(Config.releaseCodePath)));
       this.widgetCliSocket = createWidgetCliSocket(server);
+      // sandbox
+      const widgetConfig = getWidgetConfig();
+      app.all('/widgetConfig', (req, res) => {
+        res.set({
+          'Access-Control-Allow-Origin': req.headers.origin || '*',
+          'Access-Control-Allow-Headers': '*',
+        });
+        if (req.method.toLocaleLowerCase() === 'options') {
+          res.sendStatus(200);
+        } else {
+          res.send({
+            sandbox: widgetConfig.sandbox,
+            packageId: widgetConfig.packageId
+          });
+        }
+      });
     } else {
       server = http.createServer(app);
       app.get('/ping.png', (req, res) => {

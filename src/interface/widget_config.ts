@@ -25,4 +25,6 @@ export interface IWidgetConfig {
   authorEmail: string;
   /** 小程序描述，显示在小程序安装界面 */
   description: {[key: string]: string};
+  /** [可选] 小程序渲染是否启用 iframe 模式 */
+  sandbox?: boolean;
 }

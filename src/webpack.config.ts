@@ -1,10 +1,11 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
 import Config from './config';
+import { IWidgetConfig } from './interface/widget_config';
 
 export const getWebpackConfig = (
   { dir, mode, globalFlag, config, onSucceed }:
-  {dir: string; globalFlag: boolean | undefined, mode: 'dev' | 'prod'; config: any; onSucceed: () => void}
+  {dir: string; globalFlag: boolean | undefined, mode: 'dev' | 'prod'; config: IWidgetConfig; onSucceed: () => void}
 ): webpack.Configuration => {
   const packageId = (globalFlag ? config.globalPackageId : config.packageId) || 'wpkDeveloper';
 
@@ -44,7 +45,8 @@ export const getWebpackConfig = (
             options: {
               modules: {
                 getLocalIdent: (context: any, localIdentName: any, localName: string) => {
-                  return packageId + localName;
+                  /** Enable sandbox allow external css */
+                  return (config.sandbox ? packageId : '') + localName;
                 },
               }
             }
