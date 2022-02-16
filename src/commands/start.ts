@@ -6,7 +6,7 @@ import * as chalk from 'chalk';
 import * as path from 'path';
 import * as express from 'express';
 import Config from '../config';
-import { getWidgetConfig, startCompile } from '../utils/project';
+import { getPackageJSON, getWidgetConfig, startCompile } from '../utils/project';
 import { createWidgetCliSocket } from '../utils/socket';
 import { IWidgetCliSocket } from '../interface/socket';
 import { cors } from '../utils/cors';
@@ -49,6 +49,13 @@ Compiling...
         res.send({
           sandbox: widgetConfig.sandbox,
           packageId: widgetConfig.packageId
+        });
+      });
+      // cli info
+      app.get('/widget-cli/info', (req, res) => {
+        const widgetCliPackageJSON = getPackageJSON(path.resolve(__dirname, '../../'));
+        res.send({
+          version: widgetCliPackageJSON.version
         });
       });
     } else {
