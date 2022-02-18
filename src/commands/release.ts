@@ -251,6 +251,10 @@ Succeed!
         return;
       }
 
+      if (typeof value === 'boolean') {
+        form.append(key, value ? '1' : '0');
+      }
+
       form.append(key, value);
     });
 
@@ -364,7 +368,7 @@ Succeed!
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,
-      description, authorName, authorIcon, authorLink, authorEmail,
+      description, authorName, authorIcon, authorLink, authorEmail, sandbox
     } = widgetConfig;
     spaceId ??= widgetConfig.spaceId;
 
@@ -444,6 +448,7 @@ Succeed!
     authorIcon && this.log(`authorIcon           ${authorIcon}`);
     authorEmail && this.log(`authorEmail          ${authorEmail}`);
     this.log(`authorLink           ${authorLink}`);
+    this.log(`sandbox              ${sandbox}`);
     this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
 
     let secretKey;
@@ -472,7 +477,7 @@ Succeed!
       secretKey,
       sourceCodeBundle,
       releaseCodeBundle,
-      sandbox: widgetConfig.sandbox
+      sandbox
     });
     cli.action.start('uploading');
     await this.releaseWidget(formData, { host, token });
