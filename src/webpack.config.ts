@@ -46,7 +46,7 @@ export const getWebpackConfig = (
               modules: {
                 getLocalIdent: (context: any, localIdentName: any, localName: string) => {
                   /** Enable sandbox allow external css */
-                  return (config.sandbox ? packageId : '') + localName;
+                  return (config.sandbox ? '' : packageId) + localName;
                 },
               }
             }
