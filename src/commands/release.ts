@@ -253,6 +253,7 @@ Succeed!
 
       if (typeof value === 'boolean') {
         form.append(key, value ? '1' : '0');
+        return
       }
 
       form.append(key, value);
