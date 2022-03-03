@@ -27,17 +27,18 @@ interface IReleaseParams {
   packageId?: string; // will create a new widget package when packageId is undefined
   version: string;
   spaceId: string;
-  name: { [key: string]: string }; // { 'zh-CN': '小组件', 'en-US': 'widget' }
+  name: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
   icon: string;
   cover: string;
   authorName: string;
   authorIcon: string;
   authorLink: string;
   authorEmail: string;
-  description: { [key: string]: string }; // { 'zh-CN': '小组件', 'en-US': 'widget' }
+  description: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
 	releaseCodeBundle: string;
 	sourceCodeBundle?: string;
 	secretKey?: string;
+  sandbox?: boolean;
 }
 
 export default class Release extends ListRelease {
@@ -250,6 +251,11 @@ Succeed!
         return;
       }
 
+      if (typeof value === 'boolean') {
+        form.append(key, value ? '1' : '0');
+        return
+      }
+
       form.append(key, value);
     });
 
@@ -363,7 +369,7 @@ Succeed!
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,
-      description, authorName, authorIcon, authorLink, authorEmail,
+      description, authorName, authorIcon, authorLink, authorEmail, sandbox
     } = widgetConfig;
     spaceId ??= widgetConfig.spaceId;
 
@@ -443,6 +449,7 @@ Succeed!
     authorIcon && this.log(`authorIcon           ${authorIcon}`);
     authorEmail && this.log(`authorEmail          ${authorEmail}`);
     this.log(`authorLink           ${authorLink}`);
+    this.log(`sandbox              ${sandbox}`);
     this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
 
     let secretKey;
@@ -471,6 +478,7 @@ Succeed!
       secretKey,
       sourceCodeBundle,
       releaseCodeBundle,
+      sandbox
     });
     cli.action.start('uploading');
     await this.releaseWidget(formData, { host, token });
