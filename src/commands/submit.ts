@@ -1,4 +1,4 @@
-import { flags } from '@oclif/command';
+import { flags, Command } from '@oclif/command';
 import cli from 'cli-ux';
 import axios from 'axios';
 import * as glob from 'glob';
@@ -13,18 +13,18 @@ import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
 import { getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
-import { generateRandomId, generateRandomString } from '../utils/id';
+import { generateRandomString } from '../utils/id';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
 import { PackageType, ReleaseType } from '../enum';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
-import ListRelease from './list-release';
 import { IWidgetConfig } from '../interface/widget_config';
 
-interface IReleaseParams {
+archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
+
+interface ISubmitParams {
   packageId?: string; // will create a new widget package when packageId is undefined
   version: string;
-  spaceId: string;
   name: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
   icon: string;
   cover: string;
@@ -34,18 +34,17 @@ interface IReleaseParams {
   authorEmail: string;
   description: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
 	releaseCodeBundle: string;
-	sourceCodeBundle?: string;
+  sourceCodeBundle?: string;
 	secretKey?: string;
   sandbox?: boolean;
+  website: string;
 }
 
-export default class Release extends ListRelease {
-  static hidden = true;
-
-  static description = 'Release your widget package';
+export default class Submit extends Command {
+  static description = 'Submit your widget package';
 
   static examples = [
-    `$ widget-cli release
+    `$ widget-cli submit
 Succeed!
 `,
   ];
@@ -54,8 +53,6 @@ Succeed!
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
-    global: flags.boolean({ char: 'g', description: 'Release this widget package to global' }),
-    spaceId: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
     openSource: flags.boolean({
       char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
     }),
@@ -170,9 +167,9 @@ Succeed!
     });
   }
 
-  async releaseWidget(form: FormData, auth: { host: string, token: string }) {
+  async submitWidget(form: FormData, auth: { host: string, token: string }) {
     const { host, token } = auth;
-    const result = await axios.post<IApiWrapper>('/widget/package/release', form, {
+    const result = await axios.post<IApiWrapper>('/widget/package/submit', form, {
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
       baseURL: `${host}/api/v1`,
@@ -229,7 +226,7 @@ Succeed!
     return result.data.data;
   }
 
-  buildFormData(params: IReleaseParams) {
+  buildFormData(params: ISubmitParams) {
     const form = new FormData();
     const rootDir = findWidgetRootDir();
     const files = ['icon', 'cover', 'authorIcon', 'releaseCodeBundle', 'sourceCodeBundle'];
@@ -351,16 +348,15 @@ Succeed!
   }
 
   async run() {
-    const parsed = this.parse(Release);
-    let { args: { packageId }, flags: { version, global: globalFlag, spaceId, openSource, host, token }} = parsed;
+    const parsed = this.parse(Submit);
+    let { args: { packageId }, flags: { version, host, token, openSource }} = parsed;
 
-    // let { packageId, host, token } = await autoPrompt(parsed);
-    packageId = this.getPackageId(packageId, globalFlag);
+    packageId = this.getPackageId(packageId, true);
     host = await hostPrompt(host);
     token = await tokenPrompt(token);
 
     if (!version) {
-      version = await cli.prompt('release version', { default: this.increaseVersion(), required: true });
+      version = await cli.prompt('submit version', { default: this.increaseVersion(), required: true });
     }
 
     version = this.checkVersion(version!);
@@ -369,65 +365,34 @@ Succeed!
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,
-      description, authorName, authorIcon, authorLink, authorEmail, sandbox
+      description, authorName, authorIcon, authorLink, authorEmail, sandbox, website
     } = widgetConfig;
-    spaceId ??= widgetConfig.spaceId;
 
-    if (globalFlag) {
-      if (!authorName) {
-        authorName = await cli.prompt('Author name');
-      }
-
-      if (!authorLink) {
-        authorLink = await cli.prompt('Author website');
-      }
-
-      if (!authorEmail) {
-        authorEmail = await cli.prompt('Author Email');
-      }
-      setWidgetConfig({ authorName, authorLink, authorEmail });
-    }
-
-    // if there is no packageId provide, we will create global package first
     if (!packageId) {
-      if (!globalFlag) {
-        this.error('can not find packageId in config');
-      }
-
-      const randomId = generateRandomId('wpk', 10);
-      packageId = await cli.prompt(
-        'Specify the globalPackageId, Start with "wpk" followed by 10 alphanumeric or numbers',
-        { default: randomId },
-      );
-
-      const result = await this.createWidgetPackage({
-        packageId, spaceId, name, authorName, authorEmail, authorLink,
-        releaseType: ReleaseType.Global,
-        packageType: PackageType.Official,
-      }, { host, token });
-      packageId = result.packageId;
-      // save globalPackageId to config
-      setWidgetConfig({ globalPackageId: packageId });
-    } else {
-      // check if package not exit then create it
-      const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
-      if (!widgetPackage.data) {
-        const goRelease = await cli.confirm(`Release a new widget with Id: ${packageId} Y/n?`);
-        if (!goRelease) {
-          return;
-        }
-
-        await this.createWidgetPackage({
-          packageId, spaceId, name, authorName, authorEmail, authorLink,
-          releaseType: globalFlag ? ReleaseType.Global : ReleaseType.Space,
-          packageType: PackageType.Official,
-        }, { host, token });
-      }
+      packageId = await cli.prompt('packageId');
     }
 
-    // build production code for release
+    if (!authorName) {
+      authorName = await cli.prompt('Author name');
+    }
+
+    if (!authorLink) {
+      authorLink = await cli.prompt('Author website');
+    }
+
+    if (!authorEmail) {
+      authorEmail = await cli.prompt('Author Email');
+    }
+
+    if (!website) {
+      website = await cli.prompt('Website');
+    }
+
+    setWidgetConfig({ authorName, authorLink, authorEmail, website, globalPackageId: packageId });
+
+    // build production code for submit
     cli.action.start('compiling');
-    await this.compile(globalFlag, { ...widgetConfig, [globalFlag ? 'globalPackageId' : 'packageId']: packageId });
+    await this.compile(true, { ...widgetConfig, globalPackageId: packageId });
     cli.action.stop();
 
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
@@ -439,18 +404,17 @@ Succeed!
     this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
     this.log(`host:                ${host}`);
     this.log(`packageId:           ${packageId}`);
-    this.log(`spaceId:             ${spaceId}`);
     this.log(`version:             ${version}`);
     this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
     this.log(`description          ${description['zh-CN'] || description['en-US']}`);
     this.log(`icon                 ${icon}`);
     this.log(`cover                ${cover}`);
-    authorName && this.log(`authorName           ${authorName}`);
-    authorIcon && this.log(`authorIcon           ${authorIcon}`);
-    authorEmail && this.log(`authorEmail          ${authorEmail}`);
+    this.log(`authorName           ${authorName}`);
+    this.log(`authorIcon           ${authorIcon}`);
+    this.log(`authorEmail          ${authorEmail}`);
     this.log(`authorLink           ${authorLink}`);
     this.log(`sandbox              ${sandbox}`);
-    this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
+    this.log(`website              ${website}`);
 
     let secretKey;
     let sourceCodeBundle;
@@ -464,7 +428,6 @@ Succeed!
     this.log();
 
     const formData = this.buildFormData({
-      spaceId,
       packageId,
       icon,
       cover,
@@ -476,14 +439,15 @@ Succeed!
       authorEmail,
       description,
       secretKey,
-      sourceCodeBundle,
       releaseCodeBundle,
-      sandbox
+      sourceCodeBundle,
+      sandbox,
+      website: website!
     });
     cli.action.start('uploading');
-    await this.releaseWidget(formData, { host, token });
+    await this.submitWidget(formData, { host, token });
     sourceCodeBundle && fse.removeSync(sourceCodeBundle);
     cli.action.stop();
-    this.log(chalk.greenBright(`successful release widget ${outputName}`));
+    this.log(chalk.greenBright(`successful submit widget ${outputName}`));
   }
 }
