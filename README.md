@@ -20,7 +20,7 @@ $ npm install -g @vikadata/widget-cli
 $ widget-cli COMMAND
 running command...
 $ widget-cli (-v|--version|version)
-@vikadata/widget-cli/0.0.9 darwin-x64 node-v14.16.0
+@vikadata/widget-cli/0.0.10-alpha.0 darwin-x64 node-v14.16.0
 $ widget-cli --help [COMMAND]
 USAGE
   $ widget-cli COMMAND
@@ -33,9 +33,9 @@ USAGE
 * [`widget-cli help [COMMAND]`](#widget-cli-help-command)
 * [`widget-cli init`](#widget-cli-init)
 * [`widget-cli list-release [PACKAGEID]`](#widget-cli-list-release-packageid)
-* [`widget-cli release`](#widget-cli-release)
 * [`widget-cli rollback [PACKAGEID] [VERSION]`](#widget-cli-rollback-packageid-version)
 * [`widget-cli start`](#widget-cli-start)
+* [`widget-cli submit`](#widget-cli-submit)
 * [`widget-cli unpublish [PACKAGEID]`](#widget-cli-unpublish-packageid)
 
 ## `widget-cli auth [TOKEN]`
@@ -57,7 +57,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v0.0.9/lib/commands/auth.js)_
+_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v0.0.10-alpha.0/lib/commands/auth.js)_
 
 ## `widget-cli help [COMMAND]`
 
@@ -74,7 +74,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.4/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.10/src/commands/help.ts)_
 
 ## `widget-cli init`
 
@@ -97,7 +97,7 @@ EXAMPLE
   your widget: my-widget is successfully created, cd my-widget/ check it out!
 ```
 
-_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v0.0.9/lib/commands/init.js)_
+_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v0.0.10-alpha.0/lib/commands/init.js)_
 
 ## `widget-cli list-release [PACKAGEID]`
 
@@ -120,28 +120,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v0.0.9/lib/commands/list-release.js)_
-
-## `widget-cli release`
-
-Release your widget package
-
-```
-USAGE
-  $ widget-cli release
-
-OPTIONS
-  -g, --global           Release this widget package to global
-  -h, --host=host        Specifies the host of the server, such as https://vika.cn
-  -t, --token=token      Your API Token
-  -v, --version=version  Specifies the version of the project
-
-EXAMPLE
-  $ widget-cli release
-  Succeed!
-```
-
-_See code: [lib/commands/release.js](https://github.com/vikadata/widget-cli/blob/v0.0.9/lib/commands/release.js)_
+_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v0.0.10-alpha.0/lib/commands/list-release.js)_
 
 ## `widget-cli rollback [PACKAGEID] [VERSION]`
 
@@ -165,7 +144,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v0.0.9/lib/commands/rollback.js)_
+_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v0.0.10-alpha.0/lib/commands/rollback.js)_
 
 ## `widget-cli start`
 
@@ -185,7 +164,25 @@ EXAMPLE
   Compiling...
 ```
 
-_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v0.0.9/lib/commands/start.js)_
+_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v0.0.10-alpha.0/lib/commands/start.js)_
+
+## `widget-cli submit`
+
+Submit your widget package
+
+```
+USAGE
+  $ widget-cli submit
+
+OPTIONS
+  -h, --host=host        Specifies the host of the server, such as https://vika.cn
+  -t, --token=token      Your API Token
+  -v, --version=version  Specifies the version of the project
+
+EXAMPLE
+  $ widget-cli submit
+  Succeed!
+```
 
 ## `widget-cli unpublish [PACKAGEID]`
 
@@ -209,5 +206,5 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v0.0.9/lib/commands/unpublish.js)_
+_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v0.0.10-alpha.0/lib/commands/unpublish.js)_
 <!-- commandsstop -->
