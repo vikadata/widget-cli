@@ -40,8 +40,6 @@ interface IReleaseParams {
 }
 
 export default class Release extends ListRelease {
-  static hidden = true;
-
   static description = 'Release your widget package';
 
   static examples = [
@@ -54,7 +52,7 @@ Succeed!
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
-    global: flags.boolean({ char: 'g', description: 'Release this widget package to global' }),
+    global: flags.boolean({ char: 'g', hidden: true, description: 'Release this widget package to global' }),
     spaceId: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
     openSource: flags.boolean({
       char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
