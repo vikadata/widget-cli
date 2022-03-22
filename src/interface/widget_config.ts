@@ -27,4 +27,6 @@ export interface IWidgetConfig {
   description: {[key: string]: string};
   /** [可选] 小程序渲染是否启用 iframe 模式 */
   sandbox?: boolean;
+  /** 小程序主页 */
+  website?: string;
 }
