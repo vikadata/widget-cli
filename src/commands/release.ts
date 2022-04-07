@@ -16,10 +16,11 @@ import { readableFileSize } from '../utils/file';
 import { generateRandomId, generateRandomString } from '../utils/id';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
-import { PackageType, ReleaseType } from '../enum';
+import { AssetsType, PackageType, ReleaseType } from '../enum';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
 import { IWidgetConfig } from '../interface/widget_config';
+import { getUploadToken, uploadFile } from '../utils/upload';
 
 interface IReleaseParams {
   packageId?: string; // will create a new widget package when packageId is undefined
@@ -79,17 +80,16 @@ Succeed!
     });
   }
 
-  pack(rootDir: string, outputName: string, files: string[], fileName: string, password?: string): Promise<archiver.Archiver> {
+  pack(rootDir: string, outputName: string, files: string[], fileName: string, password?: string, gzip?: boolean): Promise<archiver.Archiver> {
     return new Promise((resolve, reject) => {
       const output = fse.createWriteStream(path.join(rootDir, outputName));
       const outputDirPath = path.join(rootDir, fileName);
       if (!fse.pathExistsSync(outputDirPath)) {
         fse.mkdirSync(outputDirPath);
-        fse.mkdirSync(path.join(outputDirPath, fileName));
       }
-      const archive = password ?
+      const archive = !gzip && password ?
         archiver('zip-encrypted' as any, { zlib: { level: 9 }, encryptionMethod: 'aes256', password } as any) :
-        archiver('zip', { zlib: { level: 9 }});
+        archiver(gzip ? 'tar' : 'zip', { zlib: { level: 9 }, gzip });
 
       // listen for all archive data to be written
       // 'close' event is fired only when a file descriptor is involved
@@ -126,8 +126,9 @@ Succeed!
       archive.pipe(output);
 
       files.forEach(file => {
-        fse.copySync(file, path.join(outputDirPath, fileName ,file));
+        fse.copySync(path.join(rootDir, file), path.join(outputDirPath, fileName ,file));
       });
+
       archive.directory(outputDirPath, false);
 
       archive.finalize();
@@ -146,8 +147,11 @@ Succeed!
   getProjectFiles(rootDir: string): Promise<string[]> {
     // use .gitignore to ignore unnecessary files
     const gitignorePath = path.resolve(rootDir, '.gitignore');
-    const ignoreFile = fse.readFileSync(gitignorePath, 'utf8');
-    const ignore = parser.compile(ignoreFile);
+    let ignore: { accepts: any; denies?: (input: string) => boolean; maybe?: (input: string) => boolean; };
+    if (fse.existsSync(gitignorePath)) {
+      const ignoreFile = fse.readFileSync(gitignorePath, 'utf8');
+      ignore = parser.compile(ignoreFile);
+    }
 
     return new Promise((resolve, reject) => {
       glob('**/*', {
@@ -161,8 +165,9 @@ Succeed!
           reject(err);
           return;
         }
-
-        files = files.filter(ignore.accepts);
+        if (ignore) {
+          files = files.filter(ignore.accepts);
+        }
         resolve(files);
       });
     });
@@ -320,6 +325,29 @@ Succeed!
     };
   }
 
+  async uploadAssets(assetsType: AssetsType, packageId: string, auth: { host: string, token: string }) {
+    const widgetRootDir = findWidgetRootDir();
+    const assetsDir = path.join(widgetRootDir, Config.releaseCodePath, Config.releaseAssets);
+    const assetsTypeDir = path.join(assetsDir, assetsType);
+
+    if (!fse.pathExistsSync(assetsTypeDir)) {
+      return;
+    }
+
+    const files = await this.getProjectFiles(assetsTypeDir);
+    const { uploadToken, resourceKey } = await getUploadToken({ packageId, auth });
+    const allPromise: Promise<any>[] = [];
+    cli.action.start('uploading assets');
+    files.forEach(file => {
+      const url = path.join(assetsTypeDir, file);
+      const fileName = path.join(Config.releaseAssets, assetsType, file);
+      allPromise.push(uploadFile(uploadToken, resourceKey, fileName, url));
+      this.log(`uploading ${fileName}`);
+    });
+    await Promise.all(allPromise);
+    cli.action.stop();
+  }
+
   logSourceCode(result: {
     outputFile: string,
     packageSize: number,
@@ -460,6 +488,8 @@ Succeed!
       sourceCodeBundle = result.outputFile;
     }
     this.log();
+
+    await this.uploadAssets(AssetsType.Images, packageId, { host, token });
 
     const formData = this.buildFormData({
       spaceId,

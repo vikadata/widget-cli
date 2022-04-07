@@ -2,6 +2,8 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 import Config from './config';
 import { IWidgetConfig } from './interface/widget_config';
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import { getAssetsType, viaFileLoader } from './utils/file';
 
 export const getWebpackConfig = (
   { dir, mode, globalFlag, config, onSucceed }:
@@ -62,6 +64,25 @@ export const getWebpackConfig = (
               plugins: [['babel-plugin-styled-components', {
                 namespace: packageId,
               }]]
+            }
+          },
+          exclude: /node_modules/
+        },
+        {
+          test: viaFileLoader,
+          use: {
+            loader: 'file-loader',
+            options: {
+              publicPath: (url: string) => {
+                const fileUrl = `${Config.releaseAssets}/${getAssetsType(url)}/${url}`;
+                return mode === 'dev' ? `${fileUrl}` : `https://s1.vika.cn/widget/wpkcJfBfoEobv/${fileUrl}`;
+              },
+              outputPath: (url: string) => {
+                return `${Config.releaseAssets}/${getAssetsType(url)}/${url}`;
+              },
+              postTransformPublicPath: (p: string) => {
+                return mode === 'dev' ? `__webpack_public_path__ + ${p}` : p;
+              }
             }
           },
           exclude: /node_modules/
@@ -127,6 +148,7 @@ export const getWebpackConfig = (
       new webpack.DefinePlugin({
         'process.env.WIDGET_PACKAGE_ID': `'${packageId}'`,
       }),
+      new CleanWebpackPlugin()
     ],
   };
 };
