@@ -22,10 +22,12 @@ import ListRelease from './list-release';
 import { IWidgetConfig } from '../interface/widget_config';
 import { getUploadToken, uploadFile } from '../utils/upload';
 
+archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
+
 interface IReleaseParams {
   packageId?: string; // will create a new widget package when packageId is undefined
   version: string;
-  spaceId: string;
+  spaceId?: string;
   name: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
   icon: string;
   cover: string;
@@ -38,6 +40,7 @@ interface IReleaseParams {
 	sourceCodeBundle?: string;
 	secretKey?: string;
   sandbox?: boolean;
+  website?: string;
 }
 
 export default class Release extends ListRelease {
