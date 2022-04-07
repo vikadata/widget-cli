@@ -233,7 +233,7 @@ Succeed!
     const jsonString = ['name', 'description'];
 
     Object.entries(params).forEach(([key, value]) => {
-      if (!value) {
+      if (value == undefined) {
         return;
       }
 

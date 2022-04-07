@@ -234,7 +234,7 @@ Succeed!
     const jsonString = ['name', 'description'];
 
     Object.entries(params).forEach(([key, value]) => {
-      if (!value) {
+      if (value == undefined) {
         return;
       }
 
@@ -479,6 +479,7 @@ Succeed!
       sandbox
     });
     cli.action.start('uploading');
+    console.log(formData);
     await this.releaseWidget(formData, { host, token });
     sourceCodeBundle && fse.removeSync(sourceCodeBundle);
     cli.action.stop();
