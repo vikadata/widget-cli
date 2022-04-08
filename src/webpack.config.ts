@@ -70,20 +70,12 @@ export const getWebpackConfig = (
         },
         {
           test: viaFileLoader,
-          use: {
-            loader: 'file-loader',
-            options: {
-              publicPath: (url: string) => {
-                const fileUrl = `${Config.releaseAssets}/${getAssetsType(url)}/${url}`;
-                return mode === 'dev' ? `${fileUrl}` : `https://s1.vika.cn/widget/wpkcJfBfoEobv/${fileUrl}`;
-              },
-              outputPath: (url: string) => {
-                return `${Config.releaseAssets}/${getAssetsType(url)}/${url}`;
-              },
-              postTransformPublicPath: (p: string) => {
-                return mode === 'dev' ? `__webpack_public_path__ + ${p}` : p;
-              }
-            }
+          type: 'asset/resource',
+          generator: {
+            filename: (content: any) => {
+              return `${Config.releaseAssets}/${getAssetsType(content.filename)}/[hash][ext]`;
+            },
+            publicPath: mode === 'dev' ? undefined : `https://s1.vika.cn/widget/${packageId}/`
           },
           exclude: /node_modules/
         }
@@ -133,7 +125,7 @@ export const getWebpackConfig = (
     output: {
       libraryTarget: 'umd',
       filename: mode === 'dev' ? Config.releaseCodeName : Config.releaseCodeProdName,
-      path: path.join(dir, Config.releaseCodePath),
+      path: path.join(dir, Config.releaseCodePath)
     },
     plugins: [
       {
