@@ -1,7 +1,7 @@
 {
   "name": "@vikadata/widget-cli",
   "description": "help you to build awesome vika widget",
-  "version": "0.0.11-alpha.1",
+  "version": "0.0.11-alpha.2",
   "author": "vikadata",
   "bin": {
     "widget-cli": "./bin/run"
