@@ -1,4 +1,4 @@
 export interface IWebpackConfig {
-  assetsPublic: string;
+  assetsPublic?: string;
   entry: string;
 }
