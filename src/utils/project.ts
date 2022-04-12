@@ -7,6 +7,7 @@ import { findWidgetRootDir } from './root_dir';
 import Config from '../config';
 import { IWidgetConfig } from '../interface/widget_config';
 import { getWebpackConfig } from '../webpack.config';
+import { IWebpackConfig } from '../interface/webpack';
 
 export function getWidgetConfig(rootDir?: string): IWidgetConfig {
   rootDir = rootDir ?? findWidgetRootDir();
@@ -73,9 +74,9 @@ export function updatePrivateConfig({ token, host }: {token?: string; host?: str
   fse.outputFileSync(yamlPath, fileToSave);
 }
 
-export function startCompile(mode: 'prod' | 'dev', globalFlag: boolean, widgetConfig: IWidgetConfig, onSucceed: () => void) {
+export function startCompile(mode: 'prod' | 'dev', globalFlag: boolean, webpackConfig: IWebpackConfig, onSucceed: () => void) {
   const rootDir = findWidgetRootDir();
-  const config = getWebpackConfig({ dir: rootDir, mode, globalFlag, config: widgetConfig, onSucceed });
+  const config = getWebpackConfig({ dir: rootDir, mode, globalFlag, config: webpackConfig, onSucceed });
 
   webpack(config, (err: any, stats: any) => {
     if (err) {

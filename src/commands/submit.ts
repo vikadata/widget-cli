@@ -10,6 +10,8 @@ import { IApiWrapper } from '../interface/api';
 import Config from '../config';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import Release from './release';
+import { AssetsType } from '../enum';
+import { getUploadAuth } from '../utils/upload';
 
 export default class Submit extends Release {
   static description = 'Submit your widget package';
@@ -99,9 +101,11 @@ Succeed!
 
     setWidgetConfig({ authorName, authorLink, authorEmail, website, globalPackageId: packageId });
 
+    const uploadAuth = await getUploadAuth({ packageId, auth: { host, token }});
+
     // build production code for submit
     cli.action.start('compiling');
-    await this.compile(true, { ...widgetConfig, globalPackageId: packageId });
+    await this.compile(true, { assetsPublic: uploadAuth.endpoint, entry: widgetConfig.entry });
     cli.action.stop();
 
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
@@ -135,6 +139,8 @@ Succeed!
       sourceCodeBundle = result.outputFile;
     }
     this.log();
+
+    await this.uploadAssets(AssetsType.Images, packageId, { host, token }, uploadAuth);
 
     const formData = this.buildFormData({
       packageId,
