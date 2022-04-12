@@ -33,3 +33,10 @@ export enum EReleaseType {
   SPACE, // 空间站
   GLOBAL, // 全局
 }
+
+/**
+ * upload type
+ */
+export enum EUploadType {
+  Qiniu = 'QINIU'
+}

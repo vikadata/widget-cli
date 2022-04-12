@@ -14,13 +14,13 @@ import { findWidgetRootDir } from '../utils/root_dir';
 import { getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { generateRandomId, generateRandomString } from '../utils/id';
-import { IApiWrapper } from '../interface/api';
+import { IApiUploadAuth, IApiWrapper } from '../interface/api';
 import Config from '../config';
 import { AssetsType, PackageType, ReleaseType } from '../enum';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
-import { IWidgetConfig } from '../interface/widget_config';
-import { getUploadToken, uploadFile } from '../utils/upload';
+import { checkUploadType, getUploadAuth, uploadFile } from '../utils/upload';
+import { IWebpackConfig } from '../interface/webpack';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
 
@@ -268,10 +268,10 @@ Succeed!
     return form;
   }
 
-  compile(global: boolean, widgetConfig: IWidgetConfig) {
+  compile(global: boolean, webpackConfig: IWebpackConfig) {
     return new Promise(resolve => {
       this.log(chalk.yellowBright('=== Compiling Widget ==='));
-      startCompile('prod', global, widgetConfig, () => {
+      startCompile('prod', global, webpackConfig, () => {
         this.log(`Compile Succeed: ${Config.releaseCodePath + Config.releaseCodeProdName}`);
         resolve(undefined);
       });
@@ -328,17 +328,17 @@ Succeed!
     };
   }
 
-  async uploadAssets(assetsType: AssetsType, packageId: string, auth: { host: string, token: string }) {
+  async uploadAssets(assetsType: AssetsType, packageId: string, auth: { host: string, token: string }, uploadAuth: IApiUploadAuth) {
     const widgetRootDir = findWidgetRootDir();
     const assetsDir = path.join(widgetRootDir, Config.releaseCodePath, Config.releaseAssets);
     const assetsTypeDir = path.join(assetsDir, assetsType);
+    const { uploadToken, resourceKey, uploadType } = uploadAuth;
 
-    if (!fse.pathExistsSync(assetsTypeDir)) {
+    if (!fse.pathExistsSync(assetsTypeDir) || !checkUploadType(uploadType)) {
       return;
     }
 
     const files = await this.getProjectFiles(assetsTypeDir);
-    const { uploadToken, resourceKey } = await getUploadToken({ packageId, auth });
     const allPromise: Promise<any>[] = [];
     cli.action.start('uploading assets');
     files.forEach(file => {
@@ -454,9 +454,11 @@ Succeed!
       }
     }
 
+    const uploadAuth = await getUploadAuth({ packageId, auth: { host, token }});
+
     // build production code for release
     cli.action.start('compiling');
-    await this.compile(globalFlag, { ...widgetConfig, [globalFlag ? 'globalPackageId' : 'packageId']: packageId });
+    await this.compile(globalFlag, { assetsPublic: uploadAuth.endpoint, entry: widgetConfig.entry });
     cli.action.stop();
 
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
@@ -492,7 +494,7 @@ Succeed!
     }
     this.log();
 
-    await this.uploadAssets(AssetsType.Images, packageId, { host, token });
+    await this.uploadAssets(AssetsType.Images, packageId, { host, token }, uploadAuth);
 
     const formData = this.buildFormData({
       spaceId,

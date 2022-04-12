@@ -1,8 +1,9 @@
 import axios from 'axios';
-import { IApiWrapper } from '../interface/api';
+import { IApiUploadAuth, IApiWrapper } from '../interface/api';
 import { form_up } from 'qiniu';
+import { EUploadType } from '../interface/api_dict_enum';
 
-export const getUploadToken = async({
+export const getUploadAuth = async({
   packageId,
   auth
 }: {
@@ -10,10 +11,7 @@ export const getUploadToken = async({
   auth: { host: string, token: string }
 }) => {
   const { host, token } = auth;
-  const result = await axios.post<IApiWrapper<{
-    uploadToken: string;
-    resourceKey: string;
-  }>>(`/asset/widgets/${packageId}/uploadToken`, { prefixalScope: 1 }, {
+  const result = await axios.post<IApiWrapper<IApiUploadAuth>>(`/asset/widgets/${packageId}/uploadToken`, { prefixalScope: 1 }, {
     maxContentLength: Infinity,
     maxBodyLength: Infinity,
     baseURL: `${host}/api/v1`,
@@ -41,4 +39,13 @@ export const uploadFile = (uploadToken: string, resourceKey: string, fileName: s
       resolve();
     });
   });
+};
+
+/**
+ * Verify whether the upload type supports
+ * @param uploadType
+ * @returns
+ */
+export const checkUploadType = (uploadType: EUploadType) => {
+  return Object.values(EUploadType).some(v => v === uploadType);
 };
