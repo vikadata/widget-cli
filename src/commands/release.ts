@@ -452,6 +452,7 @@ Succeed!
           packageType: PackageType.Official,
         }, { host, token });
       }
+      setWidgetConfig({ packageId });
     }
 
     const uploadAuth = await getUploadAuth({ packageId, auth: { host, token }});

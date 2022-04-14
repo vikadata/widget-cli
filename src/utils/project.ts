@@ -11,7 +11,7 @@ import { IWebpackConfig } from '../interface/webpack';
 
 export function getWidgetConfig(rootDir?: string): IWidgetConfig {
   rootDir = rootDir ?? findWidgetRootDir();
-  return require(path.join(rootDir, Config.widgetConfigFileName));
+  return JSON.parse(fse.readFileSync(path.join(rootDir, Config.widgetConfigFileName), 'utf8'));
 }
 
 export function getPackageJSON(rootDir?: string) {
