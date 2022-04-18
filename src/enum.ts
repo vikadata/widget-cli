@@ -11,3 +11,7 @@ export enum ReleaseType {
 export enum SocketType {
   LiveReload = 'liveReload'
 }
+
+export enum AssetsType {
+  Images = 'images'
+}

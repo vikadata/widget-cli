@@ -1,13 +1,17 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
 import Config from './config';
-import { IWidgetConfig } from './interface/widget_config';
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import { getAssetsType, viaFileLoader } from './utils/file';
+import { IWebpackConfig } from './interface/webpack';
+import { getWidgetConfig } from './utils/project';
 
 export const getWebpackConfig = (
   { dir, mode, globalFlag, config, onSucceed }:
-  {dir: string; globalFlag: boolean | undefined, mode: 'dev' | 'prod'; config: IWidgetConfig; onSucceed: () => void}
+  {dir: string; globalFlag: boolean | undefined, mode: 'dev' | 'prod'; config: IWebpackConfig; onSucceed: () => void}
 ): webpack.Configuration => {
-  const packageId = (globalFlag ? config.globalPackageId : config.packageId) || 'wpkDeveloper';
+  const widgetConfig = getWidgetConfig();
+  const packageId = (globalFlag ? widgetConfig.globalPackageId : widgetConfig.packageId) || 'wpkDeveloper';
 
   return {
     context: path.resolve(__dirname),
@@ -46,7 +50,7 @@ export const getWebpackConfig = (
               modules: {
                 getLocalIdent: (context: any, localIdentName: any, localName: string) => {
                   /** Enable sandbox allow external css */
-                  return (config.sandbox ? '' : packageId) + localName;
+                  return (widgetConfig.sandbox ? '' : packageId) + localName;
                 },
               }
             }
@@ -63,6 +67,17 @@ export const getWebpackConfig = (
                 namespace: packageId,
               }]]
             }
+          },
+          exclude: /node_modules/
+        },
+        {
+          test: viaFileLoader,
+          type: 'asset/resource',
+          generator: {
+            filename: (content: any) => {
+              return `${Config.releaseAssets}/${getAssetsType(content.filename)}/[hash][ext]`;
+            },
+            publicPath: mode === 'dev' || config.assetsPublic == null ? undefined : `${config.assetsPublic}/widget/${packageId}/`
           },
           exclude: /node_modules/
         }
@@ -112,7 +127,7 @@ export const getWebpackConfig = (
     output: {
       libraryTarget: 'umd',
       filename: mode === 'dev' ? Config.releaseCodeName : Config.releaseCodeProdName,
-      path: path.join(dir, Config.releaseCodePath),
+      path: path.join(dir, Config.releaseCodePath)
     },
     plugins: [
       {
@@ -127,6 +142,7 @@ export const getWebpackConfig = (
       new webpack.DefinePlugin({
         'process.env.WIDGET_PACKAGE_ID': `'${packageId}'`,
       }),
+      new CleanWebpackPlugin()
     ],
   };
 };

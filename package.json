@@ -1,7 +1,7 @@
 {
   "name": "@vikadata/widget-cli",
   "description": "help you to build awesome vika widget",
-  "version": "0.0.10",
+  "version": "0.0.11-alpha.3",
   "author": "vikadata",
   "bin": {
     "widget-cli": "./bin/run"
@@ -35,15 +35,18 @@
     "babel-loader": "^8.2.2",
     "babel-plugin-styled-components": "^1.13.2",
     "chalk": "^4.1.1",
+    "clean-webpack-plugin": "^4.0.0",
     "cli-ux": "^5.6.3",
     "css-loader": "^6.5.1",
     "express": "^4.17.1",
+    "file-loader": "^6.2.0",
     "find-up": "^5.0.0",
     "form-data": "^4.0.0",
     "fs-extra": "^10.0.0",
     "gitignore-parser": "^0.0.2",
     "glob": "^7.1.7",
     "mv": "^2.1.1",
+    "qiniu": "^7.4.0",
     "semver": "^7.3.5",
     "socket.io": "^4.2.0",
     "style-loader": "^3.3.1",

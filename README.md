@@ -19,7 +19,7 @@ $ npm install -g @vikadata/widget-cli
 $ widget-cli COMMAND
 running command...
 $ widget-cli (-v|--version|version)
-@vikadata/widget-cli/0.0.10 darwin-x64 node-v14.16.0
+@vikadata/widget-cli/0.0.11-alpha.3 darwin-x64 node-v14.16.0
 $ widget-cli --help [COMMAND]
 USAGE
   $ widget-cli COMMAND
@@ -57,7 +57,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v0.0.10/lib/commands/auth.js)_
+_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v0.0.11-alpha.3/lib/commands/auth.js)_
 
 ## `widget-cli help [COMMAND]`
 
@@ -97,7 +97,7 @@ EXAMPLE
   your widget: my-widget is successfully created, cd my-widget/ check it out!
 ```
 
-_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v0.0.10/lib/commands/init.js)_
+_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v0.0.11-alpha.3/lib/commands/init.js)_
 
 ## `widget-cli list-release [PACKAGEID]`
 
@@ -120,7 +120,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v0.0.10/lib/commands/list-release.js)_
+_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v0.0.11-alpha.3/lib/commands/list-release.js)_
 
 ## `widget-cli release`
 
@@ -140,7 +140,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/release.js](https://github.com/vikadata/widget-cli/blob/v0.0.10/lib/commands/release.js)_
+_See code: [lib/commands/release.js](https://github.com/vikadata/widget-cli/blob/v0.0.11-alpha.3/lib/commands/release.js)_
 
 ## `widget-cli rollback [PACKAGEID] [VERSION]`
 
@@ -164,7 +164,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v0.0.10/lib/commands/rollback.js)_
+_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v0.0.11-alpha.3/lib/commands/rollback.js)_
 
 ## `widget-cli start`
 
@@ -184,7 +184,7 @@ EXAMPLE
   Compiling...
 ```
 
-_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v0.0.10/lib/commands/start.js)_
+_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v0.0.11-alpha.3/lib/commands/start.js)_
 
 ## `widget-cli submit`
 
@@ -204,7 +204,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/submit.js](https://github.com/vikadata/widget-cli/blob/v0.0.10/lib/commands/submit.js)_
+_See code: [lib/commands/submit.js](https://github.com/vikadata/widget-cli/blob/v0.0.11-alpha.3/lib/commands/submit.js)_
 
 ## `widget-cli unpublish [PACKAGEID]`
 
@@ -228,5 +228,5 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v0.0.10/lib/commands/unpublish.js)_
+_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v0.0.11-alpha.3/lib/commands/unpublish.js)_
 <!-- commandsstop -->
