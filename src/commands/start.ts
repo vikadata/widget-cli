@@ -33,7 +33,7 @@ Compiling...
   hostCompliedFile(port: string, protocol: string) {
     const app = express();
     let server = null;
-
+    app.use(cors());
     if (protocol === 'https') {
       const privateKey = fse.readFileSync(path.resolve(sslDir, 'server.key'), 'utf8');
       const certificate = fse.readFileSync(path.resolve(sslDir, 'server.crt'), 'utf8');
@@ -41,7 +41,6 @@ Compiling...
 
       server = https.createServer(credentials, app);
       app.use(express.static(path.join(Config.releaseCodePath)));
-      app.use(cors());
       this.widgetCliSocket = createWidgetCliSocket(server);
       // sandbox
       const widgetConfig = getWidgetConfig();
@@ -51,6 +50,8 @@ Compiling...
           packageId: widgetConfig.packageId
         });
       });
+    } else {
+      server = http.createServer(app);
       // cli info
       app.get('/widget-cli/info', (req, res) => {
         const widgetCliPackageJSON = getPackageJSON(path.resolve(__dirname, '../../'));
@@ -58,8 +59,6 @@ Compiling...
           version: widgetCliPackageJSON.version
         });
       });
-    } else {
-      server = http.createServer(app);
       app.get('/ping.png', (req, res) => {
         res.sendFile(path.resolve(__dirname, '../../ping.png'));
       });
