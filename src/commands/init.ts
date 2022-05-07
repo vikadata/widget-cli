@@ -4,7 +4,6 @@ import cli from 'cli-ux';
 import * as AdmZip from 'adm-zip';
 import * as os from 'os';
 import * as mv from 'mv';
-import { exec } from 'child_process';
 import * as path from 'path';
 import * as fse from 'fs-extra';
 import * as chalk from 'chalk';
@@ -15,6 +14,7 @@ import { IWidgetConfig } from '../interface/widget_config';
 import { kebab2camel } from '../utils/string';
 import { setPackageJson, updatePrivateConfig } from '../utils/project';
 import { PackageType, ReleaseType } from '../enum';
+import { asyncExec } from '../utils/exec';
 
 export default class Init extends Command {
   static description = 'Create a widget project and register it in your space';
@@ -35,37 +35,19 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     spaceId: flags.string({ char: 's', description: 'In which space to put the widget on' }),
   };
 
-  exec(cmd: string, destDir: string) {
-    return new Promise((resolve, reject) => {
-      exec(cmd, { cwd: destDir }, (error, stdout, stderr) => {
-        if (error) {
-          reject(error);
-        }
-
-        if (stderr) {
-          console.error(stderr);
-          return;
-        }
-
-        this.log(stdout);
-        resolve(undefined);
-      });
-    });
-  }
-
   async gitInit(destDir: string) {
     this.log(chalk.yellowBright('git init'));
-    await this.exec('git init', destDir);
+    await asyncExec('git init', destDir);
     this.log(chalk.yellowBright('git add .'));
-    await this.exec('git add .', destDir);
+    await asyncExec('git add .', destDir);
     this.log(chalk.yellowBright('git commit'));
-    await this.exec('git commit -m \'initial commit\'', destDir);
+    await asyncExec('git commit -m \'initial commit\'', destDir);
   }
 
   async install(destDir: string) {
     this.log(chalk.yellowBright('yarn install'));
 
-    await this.exec('yarn install', destDir);
+    await asyncExec('yarn install', destDir);
   }
 
   async createWidgetPackage(

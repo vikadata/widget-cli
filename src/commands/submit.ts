@@ -4,7 +4,7 @@ import axios from 'axios';
 import * as fse from 'fs-extra';
 import * as chalk from 'chalk';
 import * as FormData from 'form-data';
-import { getWidgetConfig, setPackageJson, setWidgetConfig } from '../utils/project';
+import { getWidgetConfig, setWidgetConfig } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
@@ -12,6 +12,7 @@ import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import Release from './release';
 import { AssetsType } from '../enum';
 import { getUploadAuth } from '../utils/upload';
+import { asyncExec } from '../utils/exec';
 
 export default class Submit extends Release {
   static description = 'Submit your widget package';
@@ -28,6 +29,7 @@ Succeed!
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
     global: flags.boolean({ char: 'g', hidden: true, description: 'Release this widget package to global' }),
     spaceId: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
+    ci: flags.boolean({ description: 'Run in CI mode, no prompt' }),
     openSource: flags.boolean({
       char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
     }),
@@ -60,43 +62,49 @@ Succeed!
 
   async run() {
     const parsed = this.parse(Submit);
-    let { args: { packageId }, flags: { version, host, token, openSource }} = parsed;
+    let { args: { packageId }, flags: { version, host, token, openSource, ci }} = parsed;
 
     packageId = this.getPackageId(packageId, true);
     host = await hostPrompt(host);
     token = await tokenPrompt(token);
 
     if (!version) {
-      version = await cli.prompt('submit version', { default: this.increaseVersion(), required: true });
+      if (ci) {
+        version = this.increaseVersion();
+      } else {
+        version = await cli.prompt('submit version', { default: this.increaseVersion(), required: true }) as string;
+      }
     }
 
-    version = this.checkVersion(version!);
+    this.checkVersion(version!);
+    await asyncExec(`npm version ${version}`);
 
-    setPackageJson({ version });
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,
       description, authorName, authorIcon, authorLink, authorEmail, sandbox, website
     } = widgetConfig;
 
-    if (!packageId) {
-      packageId = await cli.prompt('packageId');
-    }
-
-    if (!authorName) {
-      authorName = await cli.prompt('Author name');
-    }
-
-    if (!authorLink) {
-      authorLink = await cli.prompt('Author website');
-    }
-
-    if (!authorEmail) {
-      authorEmail = await cli.prompt('Author Email');
-    }
-
-    if (!website) {
-      website = await cli.prompt('Website');
+    if (!ci) {
+      if (!packageId) {
+        packageId = await cli.prompt('packageId');
+      }
+  
+      if (!authorName) {
+        authorName = await cli.prompt('Author name');
+      }
+  
+      if (!authorLink) {
+        authorLink = await cli.prompt('Author website');
+      }
+  
+      if (!authorEmail) {
+        authorEmail = await cli.prompt('Author Email');
+      }
+  
+      if (!website) {
+        website = await cli.prompt('Website');
+      }
     }
 
     setWidgetConfig({ authorName, authorLink, authorEmail, website, globalPackageId: packageId });
@@ -116,7 +124,7 @@ Succeed!
     this.log(chalk.yellowBright('=== Package Details ==='));
     this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
     this.log(`host:                ${host}`);
-    this.log(`packageId:           ${packageId}`);
+    this.log(`globalPackageId:     ${packageId}`);
     this.log(`version:             ${version}`);
     this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
     this.log(`description          ${description['zh-CN'] || description['en-US']}`);
