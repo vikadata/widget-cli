@@ -11,7 +11,7 @@ import * as chalk from 'chalk';
 import * as semver from 'semver';
 import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
-import { getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
+import { getVersion, getWidgetConfig, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { generateRandomId, generateRandomString } from '../utils/id';
 import { IApiUploadAuth, IApiWrapper } from '../interface/api';
@@ -21,6 +21,7 @@ import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
 import { checkUploadType, getUploadAuth, uploadFile } from '../utils/upload';
 import { IWebpackConfig } from '../interface/webpack';
+import { asyncExec } from '../utils/exec';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
 
@@ -58,6 +59,7 @@ Succeed!
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
     global: flags.boolean({ char: 'g', hidden: true, description: 'Release this widget package to global' }),
     spaceId: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
+    ci: flags.boolean({ description: 'Run in CI mode, no version prompt' }),
     openSource: flags.boolean({
       char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
     }),
@@ -297,8 +299,6 @@ Succeed!
     if (semver.lt(version, curVersion)) {
       this.error(`version: ${version} is less than current version ${curVersion}`);
     }
-
-    return version;
   }
 
   async packSourceCode({ secure, outputName }: { secure?: boolean, outputName: string }) {
@@ -381,7 +381,7 @@ Succeed!
 
   async run() {
     const parsed = this.parse(Release);
-    let { args: { packageId }, flags: { version, global: globalFlag, spaceId, openSource, host, token }} = parsed;
+    let { args: { packageId }, flags: { version, global: globalFlag, spaceId, openSource, host, token, ci }} = parsed;
 
     // let { packageId, host, token } = await autoPrompt(parsed);
     packageId = this.getPackageId(packageId, globalFlag);
@@ -389,12 +389,16 @@ Succeed!
     token = await tokenPrompt(token);
 
     if (!version) {
-      version = await cli.prompt('release version', { default: this.increaseVersion(), required: true });
+      if (ci) {
+        version = this.increaseVersion();
+      } else {
+        version = await cli.prompt('release version', { default: this.increaseVersion(), required: true }) as string;
+      }
     }
 
-    version = this.checkVersion(version!);
+    this.checkVersion(version);
 
-    setPackageJson({ version });
+    await asyncExec(`npm version ${version}`);
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,
