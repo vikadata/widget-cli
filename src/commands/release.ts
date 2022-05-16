@@ -394,11 +394,12 @@ Succeed!
       } else {
         version = await cli.prompt('release version', { default: this.increaseVersion(), required: true }) as string;
       }
+      this.checkVersion(version!);
+      await asyncExec(`npm version ${version}`);
+    } else {
+      this.checkVersion(version!);
     }
 
-    this.checkVersion(version);
-
-    await asyncExec(`npm version ${version}`);
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,

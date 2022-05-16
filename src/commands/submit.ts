@@ -74,10 +74,12 @@ Succeed!
       } else {
         version = await cli.prompt('submit version', { default: this.increaseVersion(), required: true }) as string;
       }
-    }
+      this.checkVersion(version!);
+      await asyncExec(`npm version ${version}`);
+    } else {
+      this.checkVersion(version!);
 
-    this.checkVersion(version!);
-    await asyncExec(`npm version ${version}`);
+    }
 
     const widgetConfig = getWidgetConfig();
     let {
@@ -89,19 +91,19 @@ Succeed!
       if (!packageId) {
         packageId = await cli.prompt('packageId');
       }
-  
+
       if (!authorName) {
         authorName = await cli.prompt('Author name');
       }
-  
+
       if (!authorLink) {
         authorLink = await cli.prompt('Author website');
       }
-  
+
       if (!authorEmail) {
         authorEmail = await cli.prompt('Author Email');
       }
-  
+
       if (!website) {
         website = await cli.prompt('Website');
       }
