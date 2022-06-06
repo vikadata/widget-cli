@@ -27,7 +27,7 @@ Compiling...
     let firstCompile = true;
     const widgetConfig = getWidgetConfig();
 
-    startCompile('dev', false, { entry: widgetConfig.entry }, () => {
+    startCompile('development', false, { entry: widgetConfig.entry }, () => {
       if (firstCompile) {
         this.log(chalk.cyanBright('************************'));
         this.log(chalk.yellowBright(`Current packageID: ${widgetConfig.packageId}`));

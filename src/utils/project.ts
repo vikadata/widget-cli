@@ -2,12 +2,12 @@
 import * as path from 'path';
 import * as YAML from 'yaml';
 import * as fse from 'fs-extra';
-import * as webpack from 'webpack';
 import { findWidgetRootDir } from './root_dir';
 import Config from '../config';
 import { IWidgetConfig } from '../interface/widget_config';
-import { getWebpackConfig } from '../webpack.config';
 import { IWebpackConfig } from '../interface/webpack';
+
+const createBundler = require('@vikadata/widget-webpack-bundler').default;
 
 export function getWidgetConfig(rootDir?: string): IWidgetConfig {
   rootDir = rootDir ?? findWidgetRootDir();
@@ -75,40 +75,32 @@ export function updatePrivateConfig({ token, host }: {token?: string; host?: str
   fse.outputFileSync(yamlPath, fileToSave);
 }
 
-export function startCompile(mode: 'prod' | 'dev', globalFlag: boolean, webpackConfig: IWebpackConfig, onSucceed: () => void) {
+export function getWidgetCustomizeConfigBundler() {
+  const customizeConfigName = 'customize.config.js';
   const rootDir = findWidgetRootDir();
-  const config = getWebpackConfig({ dir: rootDir, mode, globalFlag, config: webpackConfig, onSucceed });
-
-  webpack(config, (err: any, stats: any) => {
-    if (err) {
-      if ((err as any).details!) {
-        console.error((err as any).details);
-      }
-      console.error(err.stack || err);
-    }
-
-    if (!stats) {
-      return;
-    }
-
-    const info = stats.toJson();
-
-    if (!info) {
-      return;
-    }
-
-    if (stats.hasErrors()) {
-      info.errors!.forEach((e: any) => {
-        console.error(e.message);
-      });
-    }
-
-    if (stats.hasWarnings()) {
-      info.warnings!.forEach((e: any) => {
-        console.warn(e.message);
-      });
-    }
-
-    info.logging && console.log(info.logging);
-  });
+  const customizeConfigPath = path.join(rootDir, customizeConfigName);
+  if(!fse.pathExistsSync(customizeConfigPath)) {
+    return null;
+  }
+  return require(customizeConfigPath).default;
 }
+
+export function startCompile(mode: 'production' | 'development', globalFlag: boolean, webpackConfig: IWebpackConfig, onSucceed: () => void) {
+  const rootDir = findWidgetRootDir();
+  const customizeBundler = getWidgetCustomizeConfigBundler() || createBundler((config: any) => config);
+
+  customizeBundler.startDevServer({
+    emitBuildState: ({ status }: any) => {
+      if (status === 'success') {
+        onSucceed();
+      }
+    },
+    mode,
+    entry: path.join(rootDir, webpackConfig.entry),
+    internal: {
+      widgetConfig: getWidgetConfig(),
+      assetsPublic: webpackConfig.assetsPublic,
+      ...Config
+    }
+  });
+};
