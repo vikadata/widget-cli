@@ -273,7 +273,7 @@ Succeed!
   compile(global: boolean, webpackConfig: IWebpackConfig) {
     return new Promise(resolve => {
       this.log(chalk.yellowBright('=== Compiling Widget ==='));
-      startCompile('prod', global, webpackConfig, () => {
+      startCompile('production', global, webpackConfig, () => {
         this.log(`Compile Succeed: ${Config.releaseCodePath + Config.releaseCodeProdName}`);
         resolve(undefined);
       });
