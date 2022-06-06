@@ -2,12 +2,11 @@
 import * as path from 'path';
 import * as YAML from 'yaml';
 import * as fse from 'fs-extra';
+import * as semver from 'semver';
 import { findWidgetRootDir } from './root_dir';
 import Config from '../config';
 import { IWidgetConfig } from '../interface/widget_config';
 import { IWebpackConfig } from '../interface/webpack';
-
-const createBundler = require('@vikadata/widget-webpack-bundler').default;
 
 export function getWidgetConfig(rootDir?: string): IWidgetConfig {
   rootDir = rootDir ?? findWidgetRootDir();
@@ -84,11 +83,35 @@ export function getWidgetCustomizeConfigBundler() {
   return require(customizeConfigPath).default;
 }
 
+export function getWidgetWebpackBundlerVersionInCli() {
+  const widgetWebpackBundlerPathInCli = path.join(__dirname, '../../', 'node_modules', '@vikadata/widget-webpack-bundler', 'package.json');
+  return require(widgetWebpackBundlerPathInCli).version;
+}
+
+export function checkWidgetWebpackBundlerVersion() {
+  const rootDir = findWidgetRootDir();
+  const widgetWebpackBundlerPathInWidget = path.join(rootDir, 'node_modules', '@vikadata/widget-webpack-bundler', 'package.json');
+  if(!fse.pathExistsSync(widgetWebpackBundlerPathInWidget)) {
+    return true;
+  }
+  const widgetWebpackBundlerVersionInWidget = require(widgetWebpackBundlerPathInWidget).version;
+  const widgetWebpackBundlerVersionInCli = getWidgetWebpackBundlerVersionInCli();
+  return semver.eq(widgetWebpackBundlerVersionInWidget, widgetWebpackBundlerVersionInCli)
+}
+
 export function startCompile(mode: 'production' | 'development', globalFlag: boolean, webpackConfig: IWebpackConfig, onSucceed: () => void) {
   const rootDir = findWidgetRootDir();
+  const createBundler = require('@vikadata/widget-webpack-bundler').default;
   const customizeBundler = getWidgetCustomizeConfigBundler() || createBundler((config: any) => config);
 
-  customizeBundler.startDevServer({
+  // check widget-webpack-bundler version in widget and in widget-cli is equal
+  if (!checkWidgetWebpackBundlerVersion()) {
+    throw new Error(`Please install @vikadata/widget-webpack-bundler@${getWidgetWebpackBundlerVersionInCli()}`);
+  }
+
+  const widgetConfig = getWidgetConfig();
+
+  const options = {
     emitBuildState: ({ status }: any) => {
       if (status === 'success') {
         onSucceed();
@@ -97,9 +120,20 @@ export function startCompile(mode: 'production' | 'development', globalFlag: boo
     mode,
     entry: path.join(rootDir, webpackConfig.entry),
     internal: {
-      widgetConfig: getWidgetConfig(),
+      widgetConfig: {
+        ...widgetConfig,
+        packageId: globalFlag ? widgetConfig.globalPackageId : widgetConfig.packageId
+      },
       assetsPublic: webpackConfig.assetsPublic,
-      ...Config
+      ...Config,
     }
-  });
+  }
+
+  if (mode === 'development') {
+    customizeBundler.startDevServer(options);
+    return;
+  }
+
+  customizeBundler.buildBundle(options);
+
 };
