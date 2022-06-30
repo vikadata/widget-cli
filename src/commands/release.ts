@@ -42,6 +42,8 @@ interface IReleaseParams {
 	secretKey?: string;
   sandbox?: boolean;
   website?: string;
+  installEnv?: string[];
+  runtimeEnv?: string[];
 }
 
 export default class Release extends ListRelease {
@@ -264,6 +266,13 @@ Succeed!
         return;
       }
 
+      if (value instanceof Array) {
+        value.forEach(val => {
+          form.append(`${key}[]`, val);
+        });
+        return;
+      }
+
       form.append(key, value);
     });
 
@@ -402,8 +411,8 @@ Succeed!
 
     const widgetConfig = getWidgetConfig();
     let {
-      icon, cover, name,
-      description, authorName, authorIcon, authorLink, authorEmail, sandbox
+      icon, cover, name, description, authorName, authorIcon,
+      authorLink, authorEmail, sandbox, installEnv, runtimeEnv,
     } = widgetConfig;
     spaceId ??= widgetConfig.spaceId;
 
@@ -488,6 +497,8 @@ Succeed!
     this.log(`authorLink           ${authorLink}`);
     this.log(`sandbox              ${sandbox}`);
     this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
+    this.log(`installEnv           ${installEnv}`);
+    this.log(`runtimeEnv           ${runtimeEnv}`);
 
     let secretKey;
     let sourceCodeBundle;
@@ -517,7 +528,9 @@ Succeed!
       secretKey,
       sourceCodeBundle,
       releaseCodeBundle,
-      sandbox
+      sandbox,
+      installEnv,
+      runtimeEnv
     });
     cli.action.start('uploading');
     await this.releaseWidget(formData, { host, token });

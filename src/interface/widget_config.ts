@@ -29,4 +29,8 @@ export interface IWidgetConfig {
   sandbox?: boolean;
   /** 小程序主页 */
   website?: string;
+  /** 安装环境 */
+  installEnv?: string[];
+  /** 运行环境 */
+  runtimeEnv?: string[];
 }

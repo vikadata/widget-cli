@@ -83,8 +83,9 @@ Succeed!
 
     const widgetConfig = getWidgetConfig();
     let {
-      icon, cover, name,
-      description, authorName, authorIcon, authorLink, authorEmail, sandbox, website
+      icon, cover, name, description, authorName, authorIcon,
+      authorLink, authorEmail, sandbox, website, installEnv,
+      runtimeEnv
     } = widgetConfig;
 
     if (!ci) {
@@ -138,6 +139,8 @@ Succeed!
     this.log(`authorLink           ${authorLink}`);
     this.log(`sandbox              ${sandbox}`);
     this.log(`website              ${website}`);
+    this.log(`installEnv           ${installEnv}`);
+    this.log(`runtimeEnv           ${runtimeEnv}`);
 
     let secretKey;
     let sourceCodeBundle;
@@ -167,7 +170,9 @@ Succeed!
       releaseCodeBundle,
       sourceCodeBundle,
       sandbox,
-      website: website!
+      website: website!,
+      installEnv,
+      runtimeEnv
     });
     cli.action.start('uploading');
     await this.submitWidget(formData, { host, token });
