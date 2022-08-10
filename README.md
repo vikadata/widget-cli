@@ -8,8 +8,7 @@ help you build awesome vika widget
 [![Downloads/week](https://img.shields.io/npm/dw/@vikadata/widget-cli.svg)](https://npmjs.org/package/@vikadata/widget-cli)
 [![License](https://img.shields.io/npm/l/@vikadata/widget-cli.svg)](https://github.com/vikadata/widget-cli/blob/master/package.json)
 
-<!-- toc -->
-* [Docs](https://vika.cn/developers/widget/introduction)
+* [Docs](https://vika.cn/developers/widget/introduction)<!-- toc -->
 * [Usage](#usage)
 * [Commands](#commands)
 <!-- tocstop -->
