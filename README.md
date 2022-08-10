@@ -9,6 +9,7 @@ help you build awesome vika widget
 [![License](https://img.shields.io/npm/l/@vikadata/widget-cli.svg)](https://github.com/vikadata/widget-cli/blob/master/package.json)
 
 <!-- toc -->
+* [Docs](https://vika.cn/developers/widget/introduction)
 * [Usage](#usage)
 * [Commands](#commands)
 <!-- tocstop -->
