@@ -11,32 +11,37 @@ import * as chalk from 'chalk';
 import * as semver from 'semver';
 import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
-import { getName, getVersion, getWidgetConfig, setPackageJson, setWidgetConfig, startCompile } from '../utils/project';
+import { getVersion, getWidgetConfig, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { generateRandomId, generateRandomString } from '../utils/id';
-import { IApiWrapper } from '../interface/api';
+import { IApiUploadAuth, IApiWrapper } from '../interface/api';
 import Config from '../config';
-import { PackageType, ReleaseType } from '../enum';
-import { hostPrompt, packageIdPrompt, tokenPrompt } from '../utils/prompt';
+import { AssetsType, PackageType, ReleaseType } from '../enum';
+import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
+import { checkUploadType, getUploadAuth, uploadFile } from '../utils/upload';
+import { IWebpackConfig } from '../interface/webpack';
+import { asyncExec } from '../utils/exec';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
 
 interface IReleaseParams {
   packageId?: string; // will create a new widget package when packageId is undefined
   version: string;
-  spaceId: string;
-  name: { [key: string]: string }; // { 'zh-CN': '小组件', 'en-US': 'widget' }
+  spaceId?: string;
+  name: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
   icon: string;
   cover: string;
   authorName: string;
   authorIcon: string;
   authorLink: string;
   authorEmail: string;
-  description: { [key: string]: string }; // { 'zh-CN': '小组件', 'en-US': 'widget' }
+  description: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
 	releaseCodeBundle: string;
 	sourceCodeBundle?: string;
 	secretKey?: string;
+  sandbox?: boolean;
+  website?: string;
 }
 
 export default class Release extends ListRelease {
@@ -52,9 +57,10 @@ Succeed!
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
-    global: flags.boolean({ char: 'g', description: 'Release this widget package to global' }),
-    ['space-id']: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
-    ['open-source']: flags.boolean({
+    global: flags.boolean({ char: 'g', hidden: true, description: 'Release this widget package to global' }),
+    spaceId: flags.string({ char: 's', hidden: true, description: 'Specifies the spaceId where you want to release' }),
+    ci: flags.boolean({ description: 'Run in CI mode, no version prompt' }),
+    openSource: flags.boolean({
       char: 'o', hidden: true, description: 'Upload and share source code with users, current used in example template',
     }),
   };
@@ -79,16 +85,21 @@ Succeed!
     });
   }
 
-  pack(rootDir: string, outputName: string, files: string[], password?: string): Promise<archiver.Archiver> {
+  pack(rootDir: string, outputName: string, files: string[], fileName: string, password?: string, gzip?: boolean): Promise<archiver.Archiver> {
     return new Promise((resolve, reject) => {
       const output = fse.createWriteStream(path.join(rootDir, outputName));
-      const archive = password ?
-        archiver('zip-encrypted' as any, { zlib: { level: 9 }, encryptionMethod: 'aes256', password } as any) : 
-        archiver('zip', { zlib: { level: 9 }});
+      const outputDirPath = path.join(rootDir, fileName);
+      if (!fse.pathExistsSync(outputDirPath)) {
+        fse.mkdirSync(outputDirPath);
+      }
+      const archive = !gzip && password ?
+        archiver('zip-encrypted' as any, { zlib: { level: 9 }, encryptionMethod: 'aes256', password } as any) :
+        archiver(gzip ? 'tar' : 'zip', { zlib: { level: 9 }, gzip });
 
       // listen for all archive data to be written
       // 'close' event is fired only when a file descriptor is involved
       output.on('close', () => {
+        fse.remove(outputDirPath);
         resolve(archive);
       });
 
@@ -97,6 +108,7 @@ Succeed!
       // @see: https://nodejs.org/api/stream.html#stream_event_end
       output.on('end', () => {
         this.log('Data has been drained');
+        fse.remove(outputDirPath);
         resolve(archive);
       });
 
@@ -119,32 +131,48 @@ Succeed!
       archive.pipe(output);
 
       files.forEach(file => {
-        archive.append(fse.createReadStream(file), { name: path.relative(rootDir, file) });
+        fse.copySync(path.join(rootDir, file), path.join(outputDirPath, fileName ,file));
       });
+
+      archive.directory(outputDirPath, false);
 
       archive.finalize();
     });
   }
 
+  getPackageId(packageId: string | undefined, globalFlag: boolean | undefined) {
+    if (packageId) {
+      return packageId;
+    }
+
+    const widgetConfig = getWidgetConfig();
+    return globalFlag ? widgetConfig.globalPackageId : widgetConfig.packageId;
+  }
+
   getProjectFiles(rootDir: string): Promise<string[]> {
     // use .gitignore to ignore unnecessary files
     const gitignorePath = path.resolve(rootDir, '.gitignore');
-    const ignoreFile = fse.readFileSync(gitignorePath, 'utf8');
-    const ignore = parser.compile(ignoreFile);
+    let ignore: { accepts: any; denies?: (input: string) => boolean; maybe?: (input: string) => boolean; };
+    if (fse.existsSync(gitignorePath)) {
+      const ignoreFile = fse.readFileSync(gitignorePath, 'utf8');
+      ignore = parser.compile(ignoreFile);
+    }
 
     return new Promise((resolve, reject) => {
       glob('**/*', {
+        dot: true,
         cwd: rootDir,
         nodir: true,
         // hard code node_modules for performance
-        ignore: ['node_modules/**'],
+        ignore: ['node_modules/**', '.git/**', '.github/**'],
       }, (err, files) => {
         if (err) {
           reject(err);
           return;
         }
-
-        files = files.filter(ignore.accepts);
+        if (ignore) {
+          files = files.filter(ignore.accepts);
+        }
         resolve(files);
       });
     });
@@ -216,7 +244,7 @@ Succeed!
     const jsonString = ['name', 'description'];
 
     Object.entries(params).forEach(([key, value]) => {
-      if (!value) {
+      if (value == undefined) {
         return;
       }
 
@@ -231,16 +259,21 @@ Succeed!
         return;
       }
 
+      if (typeof value === 'boolean') {
+        form.append(key, value ? '1' : '0');
+        return;
+      }
+
       form.append(key, value);
     });
 
     return form;
   }
 
-  compile(global: boolean) {
+  compile(global: boolean, webpackConfig: IWebpackConfig) {
     return new Promise(resolve => {
       this.log(chalk.yellowBright('=== Compiling Widget ==='));
-      startCompile('prod', global, () => {
+      startCompile('prod', global, webpackConfig, () => {
         this.log(`Compile Succeed: ${Config.releaseCodePath + Config.releaseCodeProdName}`);
         resolve(undefined);
       });
@@ -266,8 +299,6 @@ Succeed!
     if (semver.lt(version, curVersion)) {
       this.error(`version: ${version} is less than current version ${curVersion}`);
     }
-
-    return version;
   }
 
   async packSourceCode({ secure, outputName }: { secure?: boolean, outputName: string }) {
@@ -281,7 +312,7 @@ Succeed!
     this.log(chalk.greenBright(`📦  ${outputName}`));
 
     cli.action.start('packing source code');
-    await this.pack(rootDir, outputFile, files, secretKey);
+    await this.pack(rootDir, outputFile, files, outputName, secretKey);
     cli.action.stop();
 
     const packageSize = fse.statSync(outputFilePath).size;
@@ -295,6 +326,29 @@ Succeed!
       files,
       rootDir,
     };
+  }
+
+  async uploadAssets(assetsType: AssetsType, packageId: string, auth: { host: string, token: string }, uploadAuth: IApiUploadAuth) {
+    const widgetRootDir = findWidgetRootDir();
+    const assetsDir = path.join(widgetRootDir, Config.releaseCodePath, Config.releaseAssets);
+    const assetsTypeDir = path.join(assetsDir, assetsType);
+    const { uploadToken, resourceKey, uploadType } = uploadAuth;
+
+    if (!fse.pathExistsSync(assetsTypeDir) || !checkUploadType(uploadType)) {
+      return;
+    }
+
+    const files = await this.getProjectFiles(assetsTypeDir);
+    const allPromise: Promise<any>[] = [];
+    cli.action.start('uploading assets');
+    files.forEach(file => {
+      const url = path.join(assetsTypeDir, file);
+      const fileName = path.join(Config.releaseAssets, assetsType, file);
+      allPromise.push(uploadFile(uploadToken, resourceKey, fileName, url));
+      this.log(`uploading ${fileName}`);
+    });
+    await Promise.all(allPromise);
+    cli.action.stop();
   }
 
   logSourceCode(result: {
@@ -327,73 +381,51 @@ Succeed!
 
   async run() {
     const parsed = this.parse(Release);
-    let { args: { packageId }, flags: { version, global: globalFlag, host, token }} = parsed;
-    const openSource = parsed.flags['open-source'];
-    let spaceId = parsed.flags['space-id'];
+    let { args: { packageId }, flags: { version, global: globalFlag, spaceId, openSource, host, token, ci }} = parsed;
 
     // let { packageId, host, token } = await autoPrompt(parsed);
-    packageId = await packageIdPrompt(packageId, globalFlag);
+    packageId = this.getPackageId(packageId, globalFlag);
     host = await hostPrompt(host);
     token = await tokenPrompt(token);
 
     if (!version) {
-      version = await cli.prompt('release version', { default: this.increaseVersion(), required: true });
+      if (ci) {
+        version = this.increaseVersion();
+      } else {
+        version = await cli.prompt('release version', { default: this.increaseVersion(), required: true }) as string;
+      }
+      this.checkVersion(version!);
+      await asyncExec(`npm version ${version}`);
+    } else {
+      this.checkVersion(version!);
     }
 
-    version = this.checkVersion(version!);
-    setPackageJson('version', version);
-    // build production code for release
-    cli.action.start('compiling');
-    await this.compile(globalFlag);
-    cli.action.stop();
-
-    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
-    const codeSize = fse.statSync(releaseCodeBundle).size;
-    const outputName = `${getName()}@${getVersion()}`;
     const widgetConfig = getWidgetConfig();
     let {
       icon, cover, name,
-      description, authorName, authorIcon, authorLink, authorEmail,
+      description, authorName, authorIcon, authorLink, authorEmail, sandbox
     } = widgetConfig;
     spaceId ??= widgetConfig.spaceId;
 
-    this.log();
-    this.log(chalk.yellowBright('=== Package Details ==='));
-    this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
-    this.log(`host:                ${host}`);
-    this.log(`packageId:           ${packageId}`);
-    this.log(`spaceId:             ${spaceId}`);
-    this.log(`version:             ${version}`);
-    this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
-    this.log(`description          ${description['zh-CN'] || description['en-US']}`);
-    this.log(`icon                 ${icon}`);
-    this.log(`cover                ${cover}`);
-    this.log(`authorName           ${authorName}`);
-    this.log(`authorIcon           ${authorIcon}`);
-    this.log(`authorEmail          ${authorEmail}`);
-    this.log(`authorLink           ${authorLink}`);
-    this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
+    if (globalFlag) {
+      if (!authorName) {
+        authorName = await cli.prompt('Author name');
+      }
 
-    let secretKey;
-    let sourceCodeBundle;
-    if (openSource) {
-      // pack sourceCode to zip
-      const result = await this.packSourceCode({ outputName });
-      this.logSourceCode(result);
-      secretKey = result.secretKey;
-      sourceCodeBundle = result.outputFile;
+      if (!authorLink) {
+        authorLink = await cli.prompt('Author website');
+      }
+
+      if (!authorEmail) {
+        authorEmail = await cli.prompt('Author Email');
+      }
+      setWidgetConfig({ authorName, authorLink, authorEmail });
     }
-    this.log();
 
     // if there is no packageId provide, we will create global package first
     if (!packageId) {
       if (!globalFlag) {
         this.error('can not find packageId in config');
-      }
-
-      const goRelease = await cli.confirm('Release a new widget to global Y/n?');
-      if (!goRelease) {
-        return;
       }
 
       const randomId = generateRandomId('wpk', 10);
@@ -409,7 +441,7 @@ Succeed!
       }, { host, token });
       packageId = result.packageId;
       // save globalPackageId to config
-      setWidgetConfig('globalPackageId', packageId);
+      setWidgetConfig({ globalPackageId: packageId });
     } else {
       // check if package not exit then create it
       const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
@@ -418,14 +450,57 @@ Succeed!
         if (!goRelease) {
           return;
         }
-  
+
         await this.createWidgetPackage({
           packageId, spaceId, name, authorName, authorEmail, authorLink,
           releaseType: globalFlag ? ReleaseType.Global : ReleaseType.Space,
           packageType: PackageType.Official,
         }, { host, token });
       }
+      setWidgetConfig({ packageId });
     }
+
+    const uploadAuth = await getUploadAuth({ packageId, auth: { host, token }});
+
+    // build production code for release
+    cli.action.start('compiling');
+    await this.compile(globalFlag, { assetsPublic: uploadAuth.endpoint, entry: widgetConfig.entry });
+    cli.action.stop();
+
+    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
+    const codeSize = fse.statSync(releaseCodeBundle).size;
+    const outputName = `${packageId}@${version}`;
+
+    this.log();
+    this.log(chalk.yellowBright('=== Package Details ==='));
+    this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
+    this.log(`host:                ${host}`);
+    this.log(`packageId:           ${packageId}`);
+    this.log(`spaceId:             ${spaceId}`);
+    this.log(`version:             ${version}`);
+    this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
+    this.log(`description          ${description['zh-CN'] || description['en-US']}`);
+    this.log(`icon                 ${icon}`);
+    this.log(`cover                ${cover}`);
+    authorName && this.log(`authorName           ${authorName}`);
+    authorIcon && this.log(`authorIcon           ${authorIcon}`);
+    authorEmail && this.log(`authorEmail          ${authorEmail}`);
+    this.log(`authorLink           ${authorLink}`);
+    this.log(`sandbox              ${sandbox}`);
+    this.log(`releaseType          ${globalFlag ? 'global' : 'space'}`);
+
+    let secretKey;
+    let sourceCodeBundle;
+    if (openSource) {
+      // pack sourceCode to zip
+      const result = await this.packSourceCode({ outputName });
+      this.logSourceCode(result);
+      secretKey = result.secretKey;
+      sourceCodeBundle = result.outputFile;
+    }
+    this.log();
+
+    await this.uploadAssets(AssetsType.Images, packageId, { host, token }, uploadAuth);
 
     const formData = this.buildFormData({
       spaceId,
@@ -442,6 +517,7 @@ Succeed!
       secretKey,
       sourceCodeBundle,
       releaseCodeBundle,
+      sandbox
     });
     cli.action.start('uploading');
     await this.releaseWidget(formData, { host, token });

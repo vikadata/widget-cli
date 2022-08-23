@@ -7,10 +7,11 @@ import { findWidgetRootDir } from './root_dir';
 import Config from '../config';
 import { IWidgetConfig } from '../interface/widget_config';
 import { getWebpackConfig } from '../webpack.config';
+import { IWebpackConfig } from '../interface/webpack';
 
 export function getWidgetConfig(rootDir?: string): IWidgetConfig {
   rootDir = rootDir ?? findWidgetRootDir();
-  return require(path.join(rootDir, Config.widgetConfigFileName));
+  return JSON.parse(fse.readFileSync(path.join(rootDir, Config.widgetConfigFileName), 'utf8'));
 }
 
 export function getPackageJSON(rootDir?: string) {
@@ -18,17 +19,18 @@ export function getPackageJSON(rootDir?: string) {
   return require(path.join(rootDir, 'package.json'));
 }
 
-export function setPackageJson(key: string, value: string | number | null | JSON, rootDir?: string) {
+export function setPackageJson(params: Record<string, any>, rootDir?: string) {
   rootDir = rootDir ?? findWidgetRootDir();
-  const json = getPackageJSON(rootDir);
-  json[key] = value;
+  let json = getPackageJSON(rootDir);
+  json = { ...json, ...params };
+  delete json.name;
   fse.writeFileSync(path.join(rootDir, 'package.json'), JSON.stringify(json, null, 2));
 }
 
-export function setWidgetConfig(key: keyof IWidgetConfig, value: string | {[key: string]: string}, rootDir?: string) {
+export function setWidgetConfig(params: Partial<IWidgetConfig>, rootDir?: string) {
   rootDir = rootDir ?? findWidgetRootDir();
-  const json = getWidgetConfig(rootDir);
-  json[key] = value as any;
+  let json = getWidgetConfig(rootDir);
+  json = { ...json, ...params };
   fse.writeFileSync(path.join(rootDir, Config.widgetConfigFileName), JSON.stringify(json, null, 2));
 }
 
@@ -72,10 +74,9 @@ export function updatePrivateConfig({ token, host }: {token?: string; host?: str
   fse.outputFileSync(yamlPath, fileToSave);
 }
 
-export function startCompile(mode: 'prod' | 'dev', globalFlag: boolean, onSucceed: () => void) {
+export function startCompile(mode: 'prod' | 'dev', globalFlag: boolean, webpackConfig: IWebpackConfig, onSucceed: () => void) {
   const rootDir = findWidgetRootDir();
-  const widgetConfig = getWidgetConfig();
-  const config = getWebpackConfig({ dir: rootDir, mode, globalFlag, config: widgetConfig, onSucceed });
+  const config = getWebpackConfig({ dir: rootDir, mode, globalFlag, config: webpackConfig, onSucceed });
 
   webpack(config, (err: any, stats: any) => {
     if (err) {

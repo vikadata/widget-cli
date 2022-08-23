@@ -6,9 +6,9 @@ import { IApiWrapper } from '../interface/api';
 import { autoPrompt } from '../utils/prompt';
 
 export default class Ban extends Command {
-  // static description = 'ban widget';
+  static description = 'ban widget';
 
-  static hidden: true;
+  static hidden = true;
 
   static flags = {
     host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
