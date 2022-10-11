@@ -12,7 +12,7 @@ export const MAX_TOKEN_COUNT = 20;
  * @returns
  */
 export const getUploadMeta = async({ token, host }: { token: string; host: string}) => {
-  const result = await axios.post<IApiWrapper<IUploadMeta>>('/asset/widgets/uploadMeta', {}, {
+  const result = await axios.post<IApiWrapper<IUploadMeta>>('/asset/widget/uploadMeta', {}, {
     baseURL: `${host}/api/v1`,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -36,7 +36,7 @@ export const getUploadAuth = async({
   opt
 }: IUploadAuthProps) => {
   const { host, token } = auth;
-  const result = await axios.post<IApiWrapper<IUploadAuth[]>>(`/asset/widgets/${packageId}/uploadPreSignedUrl`, opt, {
+  const result = await axios.post<IApiWrapper<IUploadAuth[]>>(`/asset/${packageId}/uploadPreSignedUrl`, opt, {
     baseURL: `${host}/api/v1`,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -72,7 +72,7 @@ export const uploadFile = async(file: fse.ReadStream, uploadAuth: IUploadAuth, a
  */
 export const uploadNotify = async({ opt, auth }: IUploadNotifyProps) => {
   const { host, token } = auth;
-  const result = await axios.post<IApiWrapper<IUploadAuth>>('/asset/widgets/uploadCallback', opt, {
+  const result = await axios.post<IApiWrapper<IUploadAuth>>('/asset/widget/uploadCallback', opt, {
     baseURL: `${host}/api/v1`,
     headers: {
       Authorization: `Bearer ${token}`,
