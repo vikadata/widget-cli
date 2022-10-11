@@ -36,7 +36,7 @@ export const getUploadAuth = async({
   opt
 }: IUploadAuthProps) => {
   const { host, token } = auth;
-  const result = await axios.post<IApiWrapper<IUploadAuth[]>>(`/asset/${packageId}/uploadPreSignedUrl`, opt, {
+  const result = await axios.post<IApiWrapper<IUploadAuth[]>>(`/asset/widget/${packageId}/uploadPreSignedUrl`, opt, {
     baseURL: `${host}/api/v1`,
     headers: {
       Authorization: `Bearer ${token}`,
