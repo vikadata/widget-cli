@@ -164,7 +164,8 @@ Succeed!
       coverToken,
       authorIconToken,
       releaseCodeBundleToken,
-      sourceCodeBundleToken
+      sourceCodeBundleToken,
+      website: website!
     };
     cli.action.start('uploading');
     await this.submitWidget(data, { host, token });
