@@ -92,7 +92,7 @@ export const uploadNotify = async({ opt, auth }: IUploadNotifyProps) => {
  */
 export const uploadPackage = async({ auth, opt, files }: IUploadPackageProps) => {
   const len = files?.length;
-  if (!len) {
+  if (!files || !len) {
     throw new Error('files is empty');
   }
   if (len > MAX_TOKEN_COUNT) {
@@ -103,7 +103,7 @@ export const uploadPackage = async({ auth, opt, files }: IUploadPackageProps) =>
     packageId,
     auth,
     opt: {
-      count: files.length,
+      count: len,
       fileType: type,
       version
     }
