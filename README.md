@@ -19,7 +19,7 @@ $ npm install -g @vikadata/widget-cli
 $ widget-cli COMMAND
 running command...
 $ widget-cli (-v|--version|version)
-@vikadata/widget-cli/0.0.17-alpha.0 darwin-x64 node-v16.15.0
+@vikadata/widget-cli/0.0.17-alpha.1 darwin-x64 node-v16.15.0
 $ widget-cli --help [COMMAND]
 USAGE
   $ widget-cli COMMAND
