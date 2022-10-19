@@ -40,7 +40,7 @@ Succeed!
 
   async submitWidget(data: IReleaseParams, auth: { host: string, token: string }) {
     const { host, token } = auth;
-    const result = await axios.post<IApiWrapper>('/widget/package/submit1', data, {
+    const result = await axios.post<IApiWrapper>('/widget/package/v2/submit', data, {
       baseURL: `${host}/api/v1`,
       headers: {
         Authorization: `Bearer ${token}`,

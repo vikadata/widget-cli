@@ -191,7 +191,7 @@ Succeed!
 
   async releaseWidget(params: IReleaseParams, auth: { host: string, token: string }) {
     const { host, token } = auth;
-    const result = await axios.post<IApiWrapper>('/widget/package/release1', params, {
+    const result = await axios.post<IApiWrapper>('/widget/package/v2/release', params, {
       baseURL: `${host}/api/v1`,
       headers: {
         // 'Content-Type': `multipart/form-data; boundary=${formData.getBoundary()}`,
