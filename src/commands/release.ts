@@ -9,39 +9,50 @@ import * as archiver from 'archiver';
 import * as crypto from 'crypto';
 import * as chalk from 'chalk';
 import * as semver from 'semver';
-import * as FormData from 'form-data';
 import { findWidgetRootDir } from '../utils/root_dir';
 import { getVersion, getWidgetConfig, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { generateRandomId, generateRandomString } from '../utils/id';
-import { IApiUploadAuth, IApiWrapper } from '../interface/api';
+import { IApiWrapper } from '../interface/api';
 import Config from '../config';
 import { AssetsType, PackageType, ReleaseType } from '../enum';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
-import { checkUploadType, getUploadAuth, uploadFile } from '../utils/upload';
+import { getUploadAuth, getUploadMeta, MAX_TOKEN_COUNT, uploadFile, uploadNotify, uploadPackage } from '../utils/upload';
 import { IWebpackConfig } from '../interface/webpack';
 import { asyncExec } from '../utils/exec';
+import { EFileType } from '../interface/api_dict_enum';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
 
-interface IReleaseParams {
+export interface IReleaseParams {
   packageId?: string; // will create a new widget package when packageId is undefined
   version: string;
   spaceId?: string;
-  name: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
-  icon: string;
-  cover: string;
+  name: string;
+  iconToken: string;
+  coverToken: string;
   authorName: string;
-  authorIcon: string;
+  authorIconToken: string;
   authorLink: string;
   authorEmail: string;
-  description: { [key: string]: string }; // { 'zh-CN': '小程序', 'en-US': 'widget' }
-	releaseCodeBundle: string;
-	sourceCodeBundle?: string;
+  description: string;
+	releaseCodeBundleToken: string;
+	sourceCodeBundleToken?: string;
 	secretKey?: string;
   sandbox?: boolean;
   website?: string;
+}
+
+interface IReleasePackageAssets {
+  icon: string;
+  cover: string;
+  authorIcon: string;
+}
+
+interface IReleaseConfigAssets {
+  releaseCodeBundle: string;
+	sourceCodeBundle?: string;
 }
 
 export default class Release extends ListRelease {
@@ -178,21 +189,14 @@ Succeed!
     });
   }
 
-  async releaseWidget(form: FormData, auth: { host: string, token: string }) {
+  async releaseWidget(params: IReleaseParams, auth: { host: string, token: string }) {
     const { host, token } = auth;
-    const result = await axios.post<IApiWrapper>('/widget/package/release', form, {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
+    const result = await axios.post<IApiWrapper>('/widget/package/v2/release', params, {
       baseURL: `${host}/api/v1`,
       headers: {
         // 'Content-Type': `multipart/form-data; boundary=${formData.getBoundary()}`,
         Authorization: `Bearer ${token}`,
-        ...form.getHeaders()
-      },
-      onUploadProgress: (event) => {
-        console.log('call me');
-        console.log(event);
-      },
+      }
     });
     if (!result.data.success) {
       this.error(result.data.message, { code: String(result.data.code), exit: 1 });
@@ -235,39 +239,6 @@ Succeed!
       this.error(result.data.message, { code: String(result.data.code) });
     }
     return result.data.data;
-  }
-
-  buildFormData(params: IReleaseParams) {
-    const form = new FormData();
-    const rootDir = findWidgetRootDir();
-    const files = ['icon', 'cover', 'authorIcon', 'releaseCodeBundle', 'sourceCodeBundle'];
-    const jsonString = ['name', 'description'];
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value == undefined) {
-        return;
-      }
-
-      if (files.includes(key)) {
-        const file = fse.createReadStream(path.join(rootDir, value));
-        form.append(key, file as any);
-        return;
-      }
-
-      if (jsonString.includes(key)) {
-        form.append(key, JSON.stringify(value));
-        return;
-      }
-
-      if (typeof value === 'boolean') {
-        form.append(key, value ? '1' : '0');
-        return;
-      }
-
-      form.append(key, value);
-    });
-
-    return form;
   }
 
   compile(global: boolean, webpackConfig: IWebpackConfig) {
@@ -328,27 +299,89 @@ Succeed!
     };
   }
 
-  async uploadAssets(assetsType: AssetsType, packageId: string, auth: { host: string, token: string }, uploadAuth: IApiUploadAuth) {
+  async uploadAssets(assetsType: AssetsType, packageId: string, auth: { host: string, token: string }) {
     const widgetRootDir = findWidgetRootDir();
     const assetsDir = path.join(widgetRootDir, Config.releaseCodePath, Config.releaseAssets);
     const assetsTypeDir = path.join(assetsDir, assetsType);
-    const { uploadToken, resourceKey, uploadType } = uploadAuth;
 
-    if (!fse.pathExistsSync(assetsTypeDir) || !checkUploadType(uploadType)) {
+    if (!fse.pathExistsSync(assetsTypeDir)) {
       return;
     }
 
-    const files = await this.getProjectFiles(assetsTypeDir);
-    const allPromise: Promise<any>[] = [];
     cli.action.start('uploading assets');
-    files.forEach(file => {
-      const url = path.join(assetsTypeDir, file);
-      const fileName = path.join(Config.releaseAssets, assetsType, file);
-      allPromise.push(uploadFile(uploadToken, resourceKey, fileName, url));
-      this.log(`uploading ${fileName}`);
-    });
-    await Promise.all(allPromise);
+
+    const files = await this.getProjectFiles(assetsTypeDir);
+    const fileNames = files.map(file => path.join(Config.releaseAssets, assetsType, file));
+
+    const len = files.length;
+    const leftGroupCount = len % MAX_TOKEN_COUNT;
+    const maxGroupCount = Math.floor(len / MAX_TOKEN_COUNT);
+
+    for(let i = 0; i < maxGroupCount + 1; i++) {
+      if (i === maxGroupCount && leftGroupCount === 0) {
+        return;
+      }
+      const fileNameStartIndex = i * MAX_TOKEN_COUNT;
+      const fileNameSliceLen = leftGroupCount > 0 && i === maxGroupCount ? leftGroupCount : MAX_TOKEN_COUNT;
+      const uploadAuth = await getUploadAuth({
+        packageId,
+        auth,
+        opt: {
+          count: fileNameSliceLen,
+          fileType: EFileType.ASSET,
+          filenames: fileNames.slice(fileNameStartIndex, fileNameStartIndex + fileNameSliceLen)
+        }
+      });
+      const allPromise: Promise<any>[] = [];
+      uploadAuth.forEach((auth, index) => {
+        const fileUrl = path.join(widgetRootDir, Config.releaseCodePath, fileNames[index]);
+        const fileEntity = fse.createReadStream(fileUrl);
+        allPromise.push(uploadFile(fileEntity, auth));
+        this.log(`uploading ${fileNames[index]}`);
+      });
+      await Promise.all(allPromise);
+      await uploadNotify({ auth, opt: { resourceKeys: uploadAuth.map(v => v.token) }});
+    }
     cli.action.stop();
+  }
+
+  async uploadPackageAssets(assets: IReleasePackageAssets, option: { packageId: string, version: string }, auth: { host: string, token: string }) {
+    const { packageId, version } = option;
+    const rootDir = findWidgetRootDir();
+    const existFiles = Object.entries(assets).filter(([key, value]) => Boolean(value));
+    const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.join(rootDir, value)) }));
+    cli.action.start('uploading package assets');
+    const filesEntity = files.map(v => v.entity);
+    const tokenArray = await uploadPackage({ auth, files: filesEntity, opt: {
+      type: EFileType.PACKAGE_CONFIG,
+      packageId,
+      version
+    }});
+    cli.action.stop();
+    const iconTokenIndex = files.findIndex(v => v.name === 'icon');
+    const coverTokenIndex = files.findIndex(v => v.name === 'cover');
+    const authorIconTokenIndex = files.findIndex(v => v.name === 'authorIcon');
+    // return order [iconToken, coverToken, authIconToken]
+    return [tokenArray[iconTokenIndex], tokenArray[coverTokenIndex], tokenArray[authorIconTokenIndex]];
+  }
+
+  async uploadPackageBundle(assets: IReleaseConfigAssets, option: { packageId: string, version: string }, auth: { host: string, token: string }) {
+    const { packageId, version } = option;
+    const rootDir = findWidgetRootDir();
+    const existFiles = Object.entries(assets).filter(([key, value]) => Boolean(value));
+    const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.join(rootDir, value)) }));
+    cli.action.start('uploading bundle');
+    const filesEntity = files.map(v => v.entity);
+    const tokenArray = await uploadPackage({ auth, files: filesEntity, opt: {
+      type: EFileType.PACKAGE,
+      packageId,
+      version
+    }});
+    cli.action.stop();
+    const releaseCodeBundleTokenIndex = files.findIndex(v => v.name === 'releaseCodeBundle');
+    const sourceCodeBundleTokenIndex = files.findIndex(v => v.name === 'sourceCodeBundle');
+    // return order [releaseCodeBundleToken, sourceCodeBundleToken]
+    return [tokenArray[releaseCodeBundleTokenIndex], tokenArray[sourceCodeBundleTokenIndex]];
   }
 
   logSourceCode(result: {
@@ -460,11 +493,11 @@ Succeed!
       setWidgetConfig({ packageId });
     }
 
-    const uploadAuth = await getUploadAuth({ packageId, auth: { host, token }});
+    const uploadMeta = await getUploadMeta({ token, host });
 
     // build production code for release
     cli.action.start('compiling');
-    await this.compile(globalFlag, { assetsPublic: uploadAuth.endpoint, entry: widgetConfig.entry });
+    await this.compile(globalFlag, { assetsPublic: uploadMeta.endpoint, entry: widgetConfig.entry });
     cli.action.stop();
 
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
@@ -500,27 +533,35 @@ Succeed!
     }
     this.log();
 
-    await this.uploadAssets(AssetsType.Images, packageId, { host, token }, uploadAuth);
+    await this.uploadAssets(AssetsType.Images, packageId, { host, token });
 
-    const formData = this.buildFormData({
+    const [releaseCodeBundleToken, sourceCodeBundleToken] = await this.uploadPackageBundle(
+      { releaseCodeBundle, sourceCodeBundle }, { version, packageId }, { host, token }
+    );
+
+    const [iconToken, coverToken, authorIconToken] = await this.uploadPackageAssets(
+      { icon, cover, authorIcon }, { version, packageId }, { host, token }
+    );
+
+    const data = {
       spaceId,
       packageId,
-      icon,
-      cover,
       version,
-      name,
+      name: JSON.stringify(name),
       authorName,
-      authorIcon,
       authorLink,
       authorEmail,
-      description,
+      description: JSON.stringify(description),
       secretKey,
-      sourceCodeBundle,
-      releaseCodeBundle,
-      sandbox
-    });
-    cli.action.start('uploading');
-    await this.releaseWidget(formData, { host, token });
+      sandbox,
+      iconToken,
+      coverToken,
+      authorIconToken,
+      releaseCodeBundleToken,
+      sourceCodeBundleToken
+    };
+    cli.action.start('releasing');
+    await this.releaseWidget(data, { host, token });
     sourceCodeBundle && fse.removeSync(sourceCodeBundle);
     cli.action.stop();
     this.log(chalk.greenBright(`successful release widget ${outputName}`));

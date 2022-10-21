@@ -3,16 +3,15 @@ import cli from 'cli-ux';
 import axios from 'axios';
 import * as fse from 'fs-extra';
 import * as chalk from 'chalk';
-import * as FormData from 'form-data';
 import { getWidgetConfig, setWidgetConfig } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
-import Release from './release';
-import { AssetsType } from '../enum';
-import { getUploadAuth } from '../utils/upload';
+import Release, { IReleaseParams } from './release';
+import { getUploadMeta } from '../utils/upload';
 import { asyncExec } from '../utils/exec';
+import { AssetsType } from '../enum';
 
 export default class Submit extends Release {
   static description = 'Submit your widget package';
@@ -39,20 +38,12 @@ Succeed!
     { name: 'packageId', description: 'The widget package id', hidden: true },
   ];
 
-  async submitWidget(form: FormData, auth: { host: string, token: string }) {
+  async submitWidget(data: IReleaseParams, auth: { host: string, token: string }) {
     const { host, token } = auth;
-    const result = await axios.post<IApiWrapper>('/widget/package/submit', form, {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
+    const result = await axios.post<IApiWrapper>('/widget/package/v2/submit', data, {
       baseURL: `${host}/api/v1`,
       headers: {
-        // 'Content-Type': `multipart/form-data; boundary=${formData.getBoundary()}`,
         Authorization: `Bearer ${token}`,
-        ...form.getHeaders()
-      },
-      onUploadProgress: (event) => {
-        console.log('call me');
-        console.log(event);
       },
     });
     if (!result.data.success) {
@@ -111,11 +102,11 @@ Succeed!
 
     setWidgetConfig({ authorName, authorLink, authorEmail, website, globalPackageId: packageId });
 
-    const uploadAuth = await getUploadAuth({ packageId, auth: { host, token }});
+    const uploadMeta = await getUploadMeta({ token, host });
 
     // build production code for submit
     cli.action.start('compiling');
-    await this.compile(true, { assetsPublic: uploadAuth.endpoint, entry: widgetConfig.entry });
+    await this.compile(true, { assetsPublic: uploadMeta.endpoint, entry: widgetConfig.entry });
     cli.action.stop();
 
     const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
@@ -150,27 +141,34 @@ Succeed!
     }
     this.log();
 
-    await this.uploadAssets(AssetsType.Images, packageId, { host, token }, uploadAuth);
+    await this.uploadAssets(AssetsType.Images, packageId, { host, token });
 
-    const formData = this.buildFormData({
+    const [iconToken, coverToken, authorIconToken] = await this.uploadPackageAssets(
+      { icon, cover, authorIcon }, { version, packageId }, { host, token }
+    );
+    const [releaseCodeBundleToken, sourceCodeBundleToken] = await this.uploadPackageBundle(
+      { releaseCodeBundle, sourceCodeBundle }, { version, packageId }, { host, token }
+    );
+
+    const data = {
       packageId,
-      icon,
-      cover,
       version,
-      name,
+      name: JSON.stringify(name),
       authorName,
-      authorIcon,
       authorLink,
       authorEmail,
-      description,
+      description: JSON.stringify(description),
       secretKey,
-      releaseCodeBundle,
-      sourceCodeBundle,
       sandbox,
+      iconToken,
+      coverToken,
+      authorIconToken,
+      releaseCodeBundleToken,
+      sourceCodeBundleToken,
       website: website!
-    });
+    };
     cli.action.start('uploading');
-    await this.submitWidget(formData, { host, token });
+    await this.submitWidget(data, { host, token });
     sourceCodeBundle && fse.removeSync(sourceCodeBundle);
     cli.action.stop();
     this.log(chalk.greenBright(`successful submit widget ${outputName}`));

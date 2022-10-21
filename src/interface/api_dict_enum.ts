@@ -35,8 +35,10 @@ export enum EReleaseType {
 }
 
 /**
- * upload type
+ * upload asset type
  */
-export enum EUploadType {
-  Qiniu = 'QINIU'
+export enum EFileType {
+  ASSET,
+  PACKAGE,
+  PACKAGE_CONFIG
 }
