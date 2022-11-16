@@ -1,17 +1,9 @@
 import { Command, flags } from '@oclif/command';
-import * as https from 'https';
-import * as http from 'http';
-import * as fse from 'fs-extra';
 import * as chalk from 'chalk';
-import * as path from 'path';
-import * as express from 'express';
 import Config from '../config';
-import { getPackageJSON, getWidgetConfig, startCompile } from '../utils/project';
-import { createWidgetCliSocket } from '../utils/socket';
+import { getWidgetConfig, startCompile } from '../utils/project';
 import { IWidgetCliSocket } from '../interface/socket';
-import { cors } from '../utils/cors';
-
-const sslDir = path.resolve(__dirname, '../../ssl');
+import { hostCompliedFile } from '../utils/start';
 
 export default class Start extends Command {
   private widgetCliSocket: IWidgetCliSocket | undefined;
@@ -29,42 +21,6 @@ Compiling...
     protocol: flags.string({ char: 'o', description: 'Specifies the protocol of the local server', default: 'https' }),
     debug: flags.boolean({ description: 'Show debug information for cli it self' }),
   };
-
-  hostCompliedFile(port: string, protocol: string) {
-    const app = express();
-    let server = null;
-    app.use(cors());
-    if (protocol === 'https') {
-      const privateKey = fse.readFileSync(path.resolve(sslDir, 'server.key'), 'utf8');
-      const certificate = fse.readFileSync(path.resolve(sslDir, 'server.crt'), 'utf8');
-      const credentials = { key: privateKey, cert: certificate };
-
-      server = https.createServer(credentials, app);
-      app.use(express.static(path.join(Config.releaseCodePath)));
-      this.widgetCliSocket = createWidgetCliSocket(server);
-      // sandbox
-      const widgetConfig = getWidgetConfig();
-      app.get('/widgetConfig', (req, res) => {
-        res.send({
-          sandbox: widgetConfig.sandbox,
-          packageId: widgetConfig.packageId
-        });
-      });
-    } else {
-      server = http.createServer(app);
-      // cli info
-      app.get('/widget-cli/info', (req, res) => {
-        const widgetCliPackageJSON = getPackageJSON(path.resolve(__dirname, '../../'));
-        res.send({
-          version: widgetCliPackageJSON.version
-        });
-      });
-      app.get('/ping.png', (req, res) => {
-        res.sendFile(path.resolve(__dirname, '../../ping.png'));
-      });
-    }
-    server.listen(port);
-  }
 
   async run() {
     const { flags: { port, protocol }} = this.parse(Start);
@@ -86,8 +42,8 @@ Compiling...
       firstCompile = false;
     });
     try {
-      this.hostCompliedFile(port, protocol);
-      this.hostCompliedFile(String(Number(port) + 1), 'http');
+      this.widgetCliSocket = hostCompliedFile(port, protocol);
+      hostCompliedFile(String(Number(port) + 1), 'http');
     } catch (error) {
       this.error(error as any);
     }
