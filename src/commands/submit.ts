@@ -2,8 +2,9 @@ import { flags } from '@oclif/command';
 import cli from 'cli-ux';
 import axios from 'axios';
 import * as fse from 'fs-extra';
+import * as path from 'path';
 import * as chalk from 'chalk';
-import { getWidgetConfig, setWidgetConfig } from '../utils/project';
+import { getVersion, getWidgetConfig, setWidgetConfig } from '../utils/project';
 import { readableFileSize } from '../utils/file';
 import { IApiWrapper } from '../interface/api';
 import Config from '../config';
@@ -12,6 +13,8 @@ import Release, { IReleaseParams } from './release';
 import { getUploadMeta } from '../utils/upload';
 import { asyncExec } from '../utils/exec';
 import { AssetsType } from '../enum';
+import { checkVersion, increaseVersion, uploadPackageAssets, uploadPackageBundle } from '../utils/release';
+import { findWidgetRootDir } from '../utils/root_dir';
 
 export default class Submit extends Release {
   static description = 'Submit your widget package';
@@ -59,17 +62,17 @@ Succeed!
     host = await hostPrompt(host);
     token = await tokenPrompt(token);
 
+    const currentVersion = getVersion();
     if (!version) {
       if (ci) {
-        version = this.increaseVersion();
+        version = increaseVersion();
       } else {
-        version = await cli.prompt('submit version', { default: this.increaseVersion(), required: true }) as string;
+        version = await cli.prompt('submit version', { default: increaseVersion(), required: true }) as string;
       }
-      this.checkVersion(version!);
+      checkVersion(version!, currentVersion);
       await asyncExec(`npm version ${version}`);
     } else {
-      this.checkVersion(version!);
-
+      checkVersion(version!, currentVersion);
     }
 
     const widgetConfig = getWidgetConfig();
@@ -109,7 +112,8 @@ Succeed!
     await this.compile(true, { assetsPublic: uploadMeta.endpoint, entry: widgetConfig.entry });
     cli.action.stop();
 
-    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
+    const rootDir = findWidgetRootDir();
+    const releaseCodeBundle = path.resolve(rootDir, Config.releaseCodePath, Config.releaseCodeProdName);
     const codeSize = fse.statSync(releaseCodeBundle).size;
     const outputName = `${packageId}@${version}`;
 
@@ -143,10 +147,10 @@ Succeed!
 
     await this.uploadAssets(AssetsType.Images, packageId, { host, token });
 
-    const [iconToken, coverToken, authorIconToken] = await this.uploadPackageAssets(
+    const [iconToken, coverToken, authorIconToken] = await uploadPackageAssets(
       { icon, cover, authorIcon }, { version, packageId }, { host, token }
     );
-    const [releaseCodeBundleToken, sourceCodeBundleToken] = await this.uploadPackageBundle(
+    const [releaseCodeBundleToken, sourceCodeBundleToken] = await uploadPackageBundle(
       { releaseCodeBundle, sourceCodeBundle }, { version, packageId }, { host, token }
     );
 

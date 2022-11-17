@@ -12,7 +12,10 @@ import * as core from 'express-serve-static-core';
 
 const sslDir = path.resolve(__dirname, '../../ssl');
 
-export const hostComplied = (app: core.Express, port: string, protocol: string) => {
+export const hostComplied = (app: core.Express, port: string, protocol: string): {
+  widgetCliSocket: IWidgetCliSocket | undefined;
+  server: http.Server | https.Server;
+} => {
   let server = null;
   app.use(cors());
   let widgetCliSocket: IWidgetCliSocket | undefined;
