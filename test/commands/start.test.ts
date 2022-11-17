@@ -8,7 +8,7 @@ describe('start command', () => {
   const startCommand = test
     .stdout()
     .stub(project, 'getWidgetConfig', () => templateWidgetConfig)
-    .stub(start, 'hostCompliedFile', () => new Object())
+    .stub(start, 'hostCompliedFile', () => new Object());
 
   startCommand
     .stub(project, 'startCompile', (...args: any[]) => {
