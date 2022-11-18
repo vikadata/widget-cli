@@ -59,6 +59,7 @@ describe('release command', () => {
     .it('packageId not exist in widget config');
 
   releaseCommand
+    .stub(fse, 'removeSync', () => {})
     .command(['release', '--version=' + releaseVersion, '--openSource'])
     .it('state openSource', () => {
       const zipFileName = `${templateWidgetConfig.packageId}@${releaseVersion}.zip`;

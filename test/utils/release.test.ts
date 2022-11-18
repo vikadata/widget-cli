@@ -58,11 +58,11 @@ describe('utils release module', () => {
   it('checkVersion', () => {
     sinon.stub(console, 'error').callsFake(async() => {});
     const res1 = checkVersion('0.0.1', '0.0.2');
-    expect(res1).to.equal(false);
+    expect(res1.valid).to.equal(false);
     const res2 = checkVersion('0.0.3', '0.0.2');
-    expect(res2).to.equal(true);
+    expect(res2.valid).to.equal(true);
     const res3 = checkVersion('123123', '0.0.2');
-    expect(res3).to.equal(false);
+    expect(res3.valid).to.equal(false);
   });
 
   it('increaseVersion', () => {
