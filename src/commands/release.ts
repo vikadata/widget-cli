@@ -264,6 +264,7 @@ Succeed!
       shaSum,
       files,
       rootDir,
+      outputFilePath
     };
   }
 
@@ -343,6 +344,13 @@ Succeed!
     }
   }
 
+  validVersion(version: string, curVersion: string) {
+    const validVersion = checkVersion(version, curVersion);
+    if (!validVersion.valid) {
+      this.error(validVersion.message);
+    }
+  }
+
   async run() {
     const parsed = this.parse(Release);
     let { args: { packageId }, flags: { version, global: globalFlag, spaceId, openSource, host, token, ci }} = parsed;
@@ -359,11 +367,9 @@ Succeed!
       } else {
         version = await cli.prompt('release version', { default: increaseVersion(), required: true }) as string;
       }
-      checkVersion(version!, currentVersion);
       await asyncExec(`npm version ${version}`);
-    } else {
-      checkVersion(version!, currentVersion);
     }
+    this.validVersion(version!, currentVersion);
 
     const widgetConfig = getWidgetConfig();
     let {
@@ -462,7 +468,7 @@ Succeed!
       const result = await this.packSourceCode({ outputName });
       this.logSourceCode(result);
       secretKey = result.secretKey;
-      sourceCodeBundle = result.outputFile;
+      sourceCodeBundle = result.outputFilePath;
     }
     this.log();
 

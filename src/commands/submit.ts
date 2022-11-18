@@ -12,8 +12,8 @@ import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import Release, { IReleaseParams } from './release';
 import { getUploadMeta } from '../utils/upload';
 import { asyncExec } from '../utils/exec';
-import { AssetsType } from '../enum';
-import { checkVersion, increaseVersion, uploadPackageAssets, uploadPackageBundle } from '../utils/release';
+import { AssetsType, ReleaseType } from '../enum';
+import { increaseVersion, uploadPackageAssets, uploadPackageBundle } from '../utils/release';
 import { findWidgetRootDir } from '../utils/root_dir';
 
 export default class Submit extends Release {
@@ -69,11 +69,9 @@ Succeed!
       } else {
         version = await cli.prompt('submit version', { default: increaseVersion(), required: true }) as string;
       }
-      checkVersion(version!, currentVersion);
       await asyncExec(`npm version ${version}`);
-    } else {
-      checkVersion(version!, currentVersion);
     }
+    this.validVersion(version!, currentVersion);
 
     const widgetConfig = getWidgetConfig();
     let {
@@ -101,6 +99,14 @@ Succeed!
       if (!website) {
         website = await cli.prompt('Website');
       }
+    }
+
+    const widgetPackage = await this.getWidgetPackage({ host, token, packageId });
+    if (!widgetPackage.data) {
+      this.error(`${packageId} is not available packageId`);
+    }
+    if (widgetPackage.data.releaseType !== ReleaseType.Global) {
+      this.error(`${packageId} is not global packageId`);
     }
 
     setWidgetConfig({ authorName, authorLink, authorEmail, website, globalPackageId: packageId });

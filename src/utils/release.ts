@@ -18,6 +18,13 @@ interface IReleaseConfigAssets {
 	sourceCodeBundle?: string;
 }
 
+/**
+ * Upload bundle and source code.
+ * @param assets
+ * @param option
+ * @param auth
+ * @returns
+ */
 export const uploadPackageBundle = async(
   assets: IReleaseConfigAssets,
   option: { packageId: string, version: string },
@@ -25,7 +32,7 @@ export const uploadPackageBundle = async(
   const { packageId, version } = option;
   const rootDir = findWidgetRootDir();
   const existFiles = Object.entries(assets).filter(([key, value]) => Boolean(value));
-  const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.join(rootDir, value)) }));
+  const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.resolve(rootDir, value)) }));
   cli.action.start('uploading bundle');
   const filesEntity = files.map(v => v.entity);
   const tokenArray = await uploadPackage({ auth, files: filesEntity, opt: {
@@ -40,6 +47,13 @@ export const uploadPackageBundle = async(
   return [tokenArray[releaseCodeBundleTokenIndex], tokenArray[sourceCodeBundleTokenIndex]];
 };
 
+/**
+ * Upload static in widget. For example, icon.
+ * @param assets Relative path
+ * @param option
+ * @param auth
+ * @returns
+ */
 export const uploadPackageAssets = async(
   assets: IReleasePackageAssets,
   option: { packageId: string, version: string },
@@ -66,15 +80,22 @@ export const uploadPackageAssets = async(
 
 export const checkVersion = (version: string, curVersion: string) => {
   if (!semver.valid(version)) {
-    console.error(`invalid version: ${version}`);
-    return false;
+    return {
+      message: `invalid version: ${version}`,
+      valid: false
+    };
   }
 
   if (semver.lt(version, curVersion)) {
-    console.error(`version: ${version} is less than current version ${curVersion}`);
-    return false;
+    return {
+      message: `version: ${version} is less than current version ${curVersion}`,
+      valid: false
+    };
   }
-  return true;
+  return {
+    message: '',
+    valid: true
+  };
 };
 
 // make sure version is valid and greater than current
