@@ -12,6 +12,7 @@
   "rules": {
     "prefer-const": "off",
     "@typescript-eslint/no-var-requires": "off",
-    "require-await": "off"
+    "require-await": "off",
+    "no-control-regex": "off"
   }
 }

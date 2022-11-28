@@ -8,12 +8,9 @@ import * as path from 'path';
 import * as fse from 'fs-extra';
 import * as chalk from 'chalk';
 import Config from '../config';
-import { IApiWrapper } from '../interface/api';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
-import { IWidgetConfig } from '../interface/widget_config';
 import { kebab2camel } from '../utils/string';
-import { setPackageJson, updatePrivateConfig } from '../utils/project';
-import { PackageType, ReleaseType } from '../enum';
+import { getWidgetConfig, setPackageJson, updatePrivateConfig } from '../utils/project';
 import { asyncExec } from '../utils/exec';
 
 export default class Init extends Command {
@@ -50,41 +47,6 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     await asyncExec('yarn install', destDir);
   }
 
-  async createWidgetPackage(
-    { host, token, name, spaceId, packageType, releaseType, authorName, authorLink, authorEmail }:
-    {
-      host: string; token: string; packageId?: string; name: string;
-      spaceId: string; packageType: PackageType; releaseType: ReleaseType;
-      authorName?: string; authorLink?: string; authorEmail?: string;
-    }
-  ) {
-    const data = {
-      spaceId,
-      packageType,
-      releaseType,
-      authorName,
-      authorLink,
-      authorEmail,
-      name: JSON.stringify({
-        'en-US': name,
-        'zh-CN': name,
-      }),
-    };
-    const result = await axios.post<IApiWrapper<{packageId: string}>>('/widget/package/create', data, {
-      baseURL: `${host}/api/v1`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (result.data.success) {
-      this.log('Successful create widgetPackage from server');
-    } else {
-      this.error(result.data.message, { code: String(result.data.code) });
-    }
-    return result.data.data;
-  }
-
   async fetchTemplate(url: string): Promise<Buffer> {
     const { data } = await axios.get(url, {
       responseType: 'arraybuffer',
@@ -108,6 +70,10 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       });
     });
     fse.removeSync(tempDir);
+  }
+
+  generateRootDir(name: string | undefined) {
+    return path.resolve(process.cwd(), `./${name}`);
   }
 
   async run() {
@@ -139,13 +105,13 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       }
     }
 
-    const rootDir = path.resolve(process.cwd(), `./${name}`);
+    const rootDir = this.generateRootDir(name);
 
     cli.action.start(`fetching template from ${template}`);
     await this.extractTemplate(template!, rootDir);
     cli.action.stop();
 
-    const widgetConfig = require(path.join(rootDir, Config.widgetConfigFileName)) as IWidgetConfig;
+    const widgetConfig = getWidgetConfig(rootDir);
     const nameCamelized = kebab2camel(name!);
     const newWidgetConfig = {
       ...widgetConfig,

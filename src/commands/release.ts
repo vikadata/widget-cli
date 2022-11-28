@@ -8,7 +8,6 @@ import * as parser from 'gitignore-parser';
 import * as archiver from 'archiver';
 import * as crypto from 'crypto';
 import * as chalk from 'chalk';
-import * as semver from 'semver';
 import { findWidgetRootDir } from '../utils/root_dir';
 import { getVersion, getWidgetConfig, setWidgetConfig, startCompile } from '../utils/project';
 import { readableFileSize } from '../utils/file';
@@ -18,10 +17,11 @@ import Config from '../config';
 import { AssetsType, PackageType, ReleaseType } from '../enum';
 import { hostPrompt, tokenPrompt } from '../utils/prompt';
 import ListRelease from './list-release';
-import { getUploadAuth, getUploadMeta, MAX_TOKEN_COUNT, uploadFile, uploadNotify, uploadPackage } from '../utils/upload';
+import { getUploadAuth, getUploadMeta, MAX_TOKEN_COUNT, uploadFile, uploadNotify } from '../utils/upload';
 import { IWebpackConfig } from '../interface/webpack';
 import { asyncExec } from '../utils/exec';
 import { EFileType } from '../interface/api_dict_enum';
+import { checkVersion, increaseVersion, uploadPackageAssets, uploadPackageBundle } from '../utils/release';
 
 archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
 
@@ -42,17 +42,6 @@ export interface IReleaseParams {
 	secretKey?: string;
   sandbox?: boolean;
   website?: string;
-}
-
-interface IReleasePackageAssets {
-  icon: string;
-  cover: string;
-  authorIcon: string;
-}
-
-interface IReleaseConfigAssets {
-  releaseCodeBundle: string;
-	sourceCodeBundle?: string;
 }
 
 export default class Release extends ListRelease {
@@ -251,27 +240,6 @@ Succeed!
     });
   }
 
-  // make sure version is valid and greater than current
-  increaseVersion() {
-    const curVersion = getVersion();
-    if (!curVersion) {
-      this.error('package version can not found');
-    }
-
-    return semver.inc(curVersion, 'patch')!;
-  }
-
-  checkVersion(version: string) {
-    const curVersion = getVersion();
-    if (!semver.valid(version)) {
-      this.error(`invalid version: ${version}`);
-    }
-
-    if (semver.lt(version, curVersion)) {
-      this.error(`version: ${version} is less than current version ${curVersion}`);
-    }
-  }
-
   async packSourceCode({ secure, outputName }: { secure?: boolean, outputName: string }) {
     // use this to unzip the output zip package
     const secretKey = secure ? generateRandomString(64) : undefined;
@@ -296,6 +264,7 @@ Succeed!
       shaSum,
       files,
       rootDir,
+      outputFilePath
     };
   }
 
@@ -345,45 +314,6 @@ Succeed!
     cli.action.stop();
   }
 
-  async uploadPackageAssets(assets: IReleasePackageAssets, option: { packageId: string, version: string }, auth: { host: string, token: string }) {
-    const { packageId, version } = option;
-    const rootDir = findWidgetRootDir();
-    const existFiles = Object.entries(assets).filter(([key, value]) => Boolean(value));
-    const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.join(rootDir, value)) }));
-    cli.action.start('uploading package assets');
-    const filesEntity = files.map(v => v.entity);
-    const tokenArray = await uploadPackage({ auth, files: filesEntity, opt: {
-      type: EFileType.PACKAGE_CONFIG,
-      packageId,
-      version
-    }});
-    cli.action.stop();
-    const iconTokenIndex = files.findIndex(v => v.name === 'icon');
-    const coverTokenIndex = files.findIndex(v => v.name === 'cover');
-    const authorIconTokenIndex = files.findIndex(v => v.name === 'authorIcon');
-    // return order [iconToken, coverToken, authIconToken]
-    return [tokenArray[iconTokenIndex], tokenArray[coverTokenIndex], tokenArray[authorIconTokenIndex]];
-  }
-
-  async uploadPackageBundle(assets: IReleaseConfigAssets, option: { packageId: string, version: string }, auth: { host: string, token: string }) {
-    const { packageId, version } = option;
-    const rootDir = findWidgetRootDir();
-    const existFiles = Object.entries(assets).filter(([key, value]) => Boolean(value));
-    const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.join(rootDir, value)) }));
-    cli.action.start('uploading bundle');
-    const filesEntity = files.map(v => v.entity);
-    const tokenArray = await uploadPackage({ auth, files: filesEntity, opt: {
-      type: EFileType.PACKAGE,
-      packageId,
-      version
-    }});
-    cli.action.stop();
-    const releaseCodeBundleTokenIndex = files.findIndex(v => v.name === 'releaseCodeBundle');
-    const sourceCodeBundleTokenIndex = files.findIndex(v => v.name === 'sourceCodeBundle');
-    // return order [releaseCodeBundleToken, sourceCodeBundleToken]
-    return [tokenArray[releaseCodeBundleTokenIndex], tokenArray[sourceCodeBundleTokenIndex]];
-  }
-
   logSourceCode(result: {
     outputFile: string,
     packageSize: number,
@@ -396,7 +326,9 @@ Succeed!
     this.log(chalk.yellowBright('=== Source Code Contents ==='));
     let unpackedSize = 0;
     result.files.forEach(file => {
-      const { size } = fse.statSync(file);
+      const rootDir = findWidgetRootDir();
+      const fileUrl = path.join(rootDir, file);
+      const { size } = fse.statSync(fileUrl);
       // use padEnd to typography
       this.log(`${readableFileSize(size).padEnd(8)} ${path.relative(result.rootDir, file)}`);
       unpackedSize += size;
@@ -412,6 +344,13 @@ Succeed!
     }
   }
 
+  validVersion(version: string, curVersion: string) {
+    const validVersion = checkVersion(version, curVersion);
+    if (!validVersion.valid) {
+      this.error(validVersion.message);
+    }
+  }
+
   async run() {
     const parsed = this.parse(Release);
     let { args: { packageId }, flags: { version, global: globalFlag, spaceId, openSource, host, token, ci }} = parsed;
@@ -421,17 +360,16 @@ Succeed!
     host = await hostPrompt(host);
     token = await tokenPrompt(token);
 
+    const currentVersion = getVersion();
     if (!version) {
       if (ci) {
-        version = this.increaseVersion();
+        version = increaseVersion();
       } else {
-        version = await cli.prompt('release version', { default: this.increaseVersion(), required: true }) as string;
+        version = await cli.prompt('release version', { default: increaseVersion(), required: true }) as string;
       }
-      this.checkVersion(version!);
       await asyncExec(`npm version ${version}`);
-    } else {
-      this.checkVersion(version!);
     }
+    this.validVersion(version!, currentVersion);
 
     const widgetConfig = getWidgetConfig();
     let {
@@ -500,7 +438,8 @@ Succeed!
     await this.compile(globalFlag, { assetsPublic: uploadMeta.endpoint, entry: widgetConfig.entry });
     cli.action.stop();
 
-    const releaseCodeBundle = Config.releaseCodePath + Config.releaseCodeProdName;
+    const rootDir = findWidgetRootDir();
+    const releaseCodeBundle = path.resolve(rootDir, Config.releaseCodePath, Config.releaseCodeProdName);
     const codeSize = fse.statSync(releaseCodeBundle).size;
     const outputName = `${packageId}@${version}`;
 
@@ -529,17 +468,17 @@ Succeed!
       const result = await this.packSourceCode({ outputName });
       this.logSourceCode(result);
       secretKey = result.secretKey;
-      sourceCodeBundle = result.outputFile;
+      sourceCodeBundle = result.outputFilePath;
     }
     this.log();
 
     await this.uploadAssets(AssetsType.Images, packageId, { host, token });
 
-    const [releaseCodeBundleToken, sourceCodeBundleToken] = await this.uploadPackageBundle(
+    const [releaseCodeBundleToken, sourceCodeBundleToken] = await uploadPackageBundle(
       { releaseCodeBundle, sourceCodeBundle }, { version, packageId }, { host, token }
     );
 
-    const [iconToken, coverToken, authorIconToken] = await this.uploadPackageAssets(
+    const [iconToken, coverToken, authorIconToken] = await uploadPackageAssets(
       { icon, cover, authorIcon }, { version, packageId }, { host, token }
     );
 
