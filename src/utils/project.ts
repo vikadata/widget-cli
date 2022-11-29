@@ -57,6 +57,7 @@ export function getPrivateConfig(rootDir?: string): {token?: string; host?: stri
     // file not exist will throw an error
     file = fse.readFileSync(yamlPath, 'utf8');
   } catch (error) {
+    return {};
   }
 
   return file ? YAML.parse(file) : {};

@@ -5,7 +5,7 @@ import { axiosResponseWrap } from '../tools';
 
 describe('ban command', () => {
   const preStdout = 'Ban widget package: --packageId=wpkDeveloper\n';
-  const testBan = (confirm: Boolean) => test
+  const testBan = (confirm: boolean) => test
     .stdout()
     .stub(cli, 'confirm', () => async() => confirm)
     .stub(axios, 'post', async() => axiosResponseWrap(null, { message: 'Ban success' }))

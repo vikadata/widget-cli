@@ -1,18 +1,20 @@
 {
   "plugins": [
-    "@typescript-eslint",
-    "react-hooks",
-    "react"
+    "@typescript-eslint"
   ],
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "vika"
+    "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
     "prefer-const": "off",
     "@typescript-eslint/no-var-requires": "off",
     "require-await": "off",
-    "no-control-regex": "off"
+    "no-control-regex": "off",
+    "@typescript-eslint/no-empty-function": 0,
+    "@typescript-eslint/explicit-module-boundary-types": 0,
+    "@typescript-eslint/no-non-null-assertion": 0,
+    "@typescript-eslint/no-explicit-any": 0
+
   }
 }
