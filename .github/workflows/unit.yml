@@ -1,0 +1,22 @@
+name: unit-testing
+
+on:
+  push:
+    branches: [ "develop", "main" ]
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches: [ "**" ]
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - name: run test
+        run: |
+          yarn
+          yarn test
+
