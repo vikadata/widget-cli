@@ -1,12 +1,12 @@
 {
-  "name": "@vikadata/widget-cli",
-  "description": "help you to build awesome vika widget",
+  "name": "@apitable/widget-cli",
+  "description": "help you to build awesome apitable widget",
   "version": "0.0.17",
-  "author": "vikadata",
+  "author": "APITable PTE. LTD.",
   "bin": {
     "widget-cli": "./bin/run"
   },
-  "bugs": "https://github.com/vikadata/widget-cli/issues",
+  "bugs": "https://github.com/apitable/widget-cli/issues",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
@@ -85,9 +85,9 @@
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://github.com/vikadata/widget-cli",
+  "homepage": "https://github.com/apitable/widget-cli",
   "keywords": [
-    "vika",
+    "apitable",
     "widget",
     "widget-cli"
   ],
@@ -109,7 +109,7 @@
       "init": "./lib/hooks/init"
     }
   },
-  "repository": "vikadata/widget-cli",
+  "repository": "apitable/widget-cli",
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "eslint . --ext .ts --config .eslintrc",

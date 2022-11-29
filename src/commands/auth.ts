@@ -15,7 +15,7 @@ Succeed!
   ];
 
   static flags = {
-    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
+    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://apitable.com' }),
   };
 
   static args = [
@@ -41,7 +41,7 @@ Succeed!
     let { args: { token }, flags: { host }} = this.parse(Auth);
 
     if (!host) {
-      host = await cli.prompt('Host of the server', { default: 'https://vika.cn' })!;
+      host = await cli.prompt('Host of the server', { default: 'https://apitable.com' })!;
     }
 
     if (!token) {
