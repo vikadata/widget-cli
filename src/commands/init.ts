@@ -133,8 +133,8 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
     try {
       await this.gitInit(rootDir);
       // await this.install(rootDir);
-    } catch(error) {
-
+    } catch {
+      this.error('Error initializing widget!');
     } finally {
       this.log(chalk.greenBright(`your widget: ${name} is successfully created, cd ./${name} go check!`));
     }

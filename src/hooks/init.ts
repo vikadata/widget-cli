@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Hook } from '@oclif/config';
 import * as chalk from 'chalk';
 
-const hook: Hook<'init'> = async function(options) {
+const hook: Hook<'init'> = async function() {
   axios.interceptors.request.use(config => {
     config.headers['X-Internal-Request'] = 'yes';
     return config;

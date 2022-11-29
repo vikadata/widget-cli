@@ -31,7 +31,7 @@ export const uploadPackageBundle = async(
   auth: { host: string, token: string }) => {
   const { packageId, version } = option;
   const rootDir = findWidgetRootDir();
-  const existFiles = Object.entries(assets).filter(([key, value]) => Boolean(value));
+  const existFiles = Object.entries(assets).filter(([, value]) => Boolean(value));
   const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.resolve(rootDir, value)) }));
   cli.action.start('uploading bundle');
   const filesEntity = files.map(v => v.entity);
@@ -61,7 +61,7 @@ export const uploadPackageAssets = async(
 ) => {
   const { packageId, version } = option;
   const rootDir = findWidgetRootDir();
-  const existFiles = Object.entries(assets).filter(([key, value]) => Boolean(value));
+  const existFiles = Object.entries(assets).filter(([, value]) => Boolean(value));
   const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.join(rootDir, value)) }));
   cli.action.start('uploading package assets');
   const filesEntity = files.map(v => v.entity);
