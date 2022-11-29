@@ -18,6 +18,6 @@ export const packageJson = {
 
 export const authYml = {
   token: 'uskGd71dtx3hFxIVZ6XOMBv',
-  host: 'https://vika.cn'
+  host: 'https://apitable.com'
 };
 

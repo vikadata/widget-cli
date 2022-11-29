@@ -23,10 +23,10 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
   ];
 
   static flags = {
-    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
+    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://apitable.com' }),
     name: flags.string({ char: 'c', description: 'Name your widget and project' }),
     official: flags.boolean({ description: 'With official capacity', hidden: true }),
-    template: flags.string({ char: 'u', description: 'The template code zip from vika or github' }),
+    template: flags.string({ char: 'u', description: 'The template code zip from apitable or github' }),
     packageId: flags.string({ char: 'p', description: 'The widget package id' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
     spaceId: flags.string({ char: 's', description: 'In which space to put the widget on' }),
@@ -121,8 +121,8 @@ your widget: my-widget is successfully created, cd my-widget/ check it out!
       globalPackageId: undefined,
       packageId,
       spaceId,
-      name: { 'zh-CN': nameCamelized, 'en-US': nameCamelized },
-      description: { 'zh-CN': `${nameCamelized} 的描述`, 'en-US': `${nameCamelized} description` },
+      name: { 'en-US': nameCamelized },
+      description: { 'en-US': `${nameCamelized} description` },
     };
     fse.writeFileSync(path.join(rootDir, Config.widgetConfigFileName), JSON.stringify(newWidgetConfig, null, 2));
 

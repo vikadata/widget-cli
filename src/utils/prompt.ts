@@ -5,7 +5,7 @@ import { getPrivateConfig, getWidgetConfig } from './project';
 export async function hostPrompt(host: string | undefined): Promise<string> {
   host ??= getPrivateConfig().host;
   if (!host) {
-    host = await cli.prompt('Host of the server', { default: 'https://vika.cn' });
+    host = await cli.prompt('Host of the server', { default: 'https://apitable.com' });
   }
   if (host && host[host?.length - 1] === '/') {
     host = host?.slice(0, -1);
@@ -28,7 +28,7 @@ export async function tokenPrompt(token: string | undefined): Promise<string> {
  *      if user not specify packageId, use packageId in widgetConfig
  *      if user run in --global mode, use globalPackageId in widgetConfig
  * if use specify host and token, use them
- *   else use host and token in privateConfig 
+ *   else use host and token in privateConfig
  */
 export async function autoPrompt(
   parsed: Parser.Output<any, any>

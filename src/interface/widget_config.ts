@@ -1,32 +1,47 @@
 export interface IWidgetConfig {
-  /** [只读] 小程序代码包的 Id，初始化时自动生成 */
+  /** [read-only] The ID of the widget code package, which is automatically generated during initialization. */
   packageId: string;
-  /** [只读] 全局小程序代码包的 Id，发布到全局时自动生成 */
+  /** [read-only] Id of the global widget code package, automatically generated when published to the global. */
   globalPackageId?: string;
-  /** 空间站 ID，小程序必须绑定一个空间站 */
+  /** Space Station ID, the widget must be bound to a space station. */
   spaceId: string;
-  /** 小程序代码版本，固定三位版本号，每次发布时需要进行更新，请遵循 semver 原则进行更新 */
+  /** Widget code version, fixed three-digit version number, each release needs to be updated, please follow the semver principle to update. */
   version: string;
-  /** 小程序代码入口, 支持 js 和 ts */
+  /** Widget code entry, support js and ts. */
   entry: string;
-  /** 小程序名称，显示在小程序安装界面 */
+  /** The name of the widget, displayed in the widget installation screen. */
   name: {[key: string]: string};
-  /** 小程序图标路径，发布时自动上传，显示在小程序安装界面, 请使用 64x64 png 文件 */
+  /**
+   * The path of the widget icon is automatically uploaded
+   * when publishing and displayed in the widget installation interface,
+   * please use 64x64 png file.
+   */
   icon: string;
-  /** 小程序封面图，发布时自动上传，显示在小程序安装界面, 请使用 16:9 的图片，推荐使用 640 × 360 的 png 或 jpg 文件 */
+  /**
+   * The cover image of the widget will be uploaded automatically when
+   * it is published and displayed in the widget installation interface,
+   * please use a 16:9 image, 640 × 360 png or jpg file is recommended.
+   */
   cover: string;
-  /** 作者名称，显示在小程序安装界面 */
+  /**
+   * The cover image of the widget will be uploaded automatically when
+   * it is published and displayed in the widget installation interface,
+   * please use a 16:9 image, 640 × 360 png or jpg file is recommended.
+   */
   authorName: string;
-  /** 作者图标路径，发布时自动上传，显示在小程序安装界面, 请使用 64x64 png 文件 */
+  /**
+   * Author icon path, automatically uploaded when publishing,
+   * displayed in the widget installation screen, please use 64x64 png file.
+   */
   authorIcon: string;
-  /** [可选] 作者地址，点击作者图标后跳转 */
+  /** [Optional] Author address, click on the author icon to jump. */
   authorLink: string;
-  /** [可选] 作者 邮件地址 */
+  /** [Optional] Author Email address. */
   authorEmail: string;
-  /** 小程序描述，显示在小程序安装界面 */
+  /** Widget description, displayed in the widget installation screen. */
   description: {[key: string]: string};
-  /** [可选] 小程序渲染是否启用 iframe 模式 */
+  /** [Optional] Whether to enable iframe mode for widget rendering. */
   sandbox?: boolean;
-  /** 小程序主页 */
+  /** Widget home page. */
   website?: string;
 }

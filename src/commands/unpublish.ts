@@ -15,7 +15,7 @@ Succeed!
   ];
 
   static flags = {
-    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
+    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://apitable.com' }),
     global: flags.boolean({ char: 'g', description: 'Specify global widget package' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
     noConfirm: flags.boolean({ description: 'Do not show confirm' }),

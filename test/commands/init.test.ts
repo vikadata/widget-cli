@@ -27,7 +27,7 @@ describe('init command', () => {
       const privateConfig = getPrivateConfig(initTemplateDir);
       expect(packageJson.version).to.equal('0.0.0');
       // eslint-disable-next-line max-len
-      expect(JSON.stringify(widgetConfig)).to.equal('{"packageId":"wpkDeveloper","spaceId":"spcxxxxx","name":{"zh-CN":"widget","en-US":"widget"},"description":{"zh-CN":"widget 的描述","en-US":"widget description"}}');
+      expect(JSON.stringify(widgetConfig)).contains('{"packageId":"wpkDeveloper","spaceId":"spcxxxxx"');
       expect(JSON.stringify(privateConfig)).to.equal('{"token":"token","host":"host"}');
       expect(ctx.stdout).to.equal('your widget: widget is successfully created, cd ./widget go check!\n');
     });

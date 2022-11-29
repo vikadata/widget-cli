@@ -3,19 +3,17 @@ export const templateWidgetConfig = {
   spaceId: 'spcxxxxx',
   entry: './src/index.tsx',
   name: {
-    'zh-CN': 'widget',
     'en-US': 'widget'
   },
   icon: './icon.png',
   cover: './cover.png',
   authorIcon: './author_icon.png',
   description: {
-    'zh-CN': 'description',
     'en-US': 'description'
   },
-  authorName: 'author',
-  authorLink: 'https://xxxx.cn',
-  authorEmail: 'dev@xxxx.com',
-  website: 'https://vika.cn',
+  authorName: 'APITable PTE. LTD.',
+  authorLink: 'https://apitable.com',
+  authorEmail: 'support@apitable.com',
+  website: 'https://apitable.com',
   sandbox: true
 };

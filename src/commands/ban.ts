@@ -11,7 +11,7 @@ export default class Ban extends Command {
   static hidden = true;
 
   static flags = {
-    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
+    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://apitable.com' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
     unban: flags.boolean({ description: 'Unban package' }),
     global: flags.boolean({ char: 'g', description: 'Specify global widget package' }),

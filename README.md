@@ -1,25 +1,25 @@
-@vikadata/widget-cli
+@apitable/widget-cli
 ====================
 
-help you build awesome vika widget
+help you build awesome apitable widget
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Version](https://img.shields.io/npm/v/@vikadata/widget-cli.svg)](https://npmjs.org/package/@vikadata/widget-cli)
-[![Downloads/week](https://img.shields.io/npm/dw/@vikadata/widget-cli.svg)](https://npmjs.org/package/@vikadata/widget-cli)
-[![License](https://img.shields.io/npm/l/@vikadata/widget-cli.svg)](https://github.com/vikadata/widget-cli/blob/master/package.json)
+[![Version](https://img.shields.io/npm/v/@apitable/widget-cli.svg)](https://npmjs.org/package/@apitable/widget-cli)
+[![Downloads/week](https://img.shields.io/npm/dw/@apitable/widget-cli.svg)](https://npmjs.org/package/@apitable/widget-cli)
+[![License](https://img.shields.io/npm/l/@apitable/widget-cli.svg)](https://github.com/apitable/widget-cli/blob/master/package.json)
 
-* [Docs](https://vika.cn/developers/widget/introduction)<!-- toc -->
+* [Docs](https://developers.apitable.com/widget/introduction)<!-- toc -->
 * [Usage](#usage)
 * [Commands](#commands)
 <!-- tocstop -->
 # Usage
 <!-- usage -->
 ```sh-session
-$ npm install -g @vikadata/widget-cli
+$ npm install -g @apitable/widget-cli
 $ widget-cli COMMAND
 running command...
 $ widget-cli (-v|--version|version)
-@vikadata/widget-cli/0.0.17 darwin-x64 node-v16.15.0
+@apitable/widget-cli/0.0.17 darwin-x64 node-v16.15.0
 $ widget-cli --help [COMMAND]
 USAGE
   $ widget-cli COMMAND
@@ -28,15 +28,18 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`widget-cli auth [TOKEN]`](#widget-cli-auth-token)
-* [`widget-cli help [COMMAND]`](#widget-cli-help-command)
-* [`widget-cli init`](#widget-cli-init)
-* [`widget-cli list-release [PACKAGEID]`](#widget-cli-list-release-packageid)
-* [`widget-cli release`](#widget-cli-release)
-* [`widget-cli rollback [PACKAGEID] [VERSION]`](#widget-cli-rollback-packageid-version)
-* [`widget-cli start`](#widget-cli-start)
-* [`widget-cli submit`](#widget-cli-submit)
-* [`widget-cli unpublish [PACKAGEID]`](#widget-cli-unpublish-packageid)
+- [@apitable/widget-cli](#apitablewidget-cli)
+- [Usage](#usage)
+- [Commands](#commands)
+  - [`widget-cli auth [TOKEN]`](#widget-cli-auth-token)
+  - [`widget-cli help [COMMAND]`](#widget-cli-help-command)
+  - [`widget-cli init`](#widget-cli-init)
+  - [`widget-cli list-release [PACKAGEID]`](#widget-cli-list-release-packageid)
+  - [`widget-cli release`](#widget-cli-release)
+  - [`widget-cli rollback [PACKAGEID] [VERSION]`](#widget-cli-rollback-packageid-version)
+  - [`widget-cli start`](#widget-cli-start)
+  - [`widget-cli submit`](#widget-cli-submit)
+  - [`widget-cli unpublish [PACKAGEID]`](#widget-cli-unpublish-packageid)
 
 ## `widget-cli auth [TOKEN]`
 
@@ -50,14 +53,14 @@ ARGUMENTS
   TOKEN  Your API Token
 
 OPTIONS
-  -h, --host=host  Specifies the host of the server, such as https://vika.cn
+  -h, --host=host  Specifies the host of the server, such as https://apitable.com
 
 EXAMPLE
   $ widget-cli auth [apiToken] --host [host]
   Succeed!
 ```
 
-_See code: [lib/commands/auth.js](https://github.com/vikadata/widget-cli/blob/v0.0.17/lib/commands/auth.js)_
+_See code: [lib/commands/auth.js](https://github.com/apitable/widget-cli/blob/v0.0.17/lib/commands/auth.js)_
 
 ## `widget-cli help [COMMAND]`
 
@@ -86,18 +89,18 @@ USAGE
 
 OPTIONS
   -c, --name=name            Name your widget and project
-  -h, --host=host            Specifies the host of the server, such as https://vika.cn
+  -h, --host=host            Specifies the host of the server, such as https://apitable.com
   -p, --packageId=packageId  The widget package id
   -s, --spaceId=spaceId      In which space to put the widget on
   -t, --token=token          Your API Token
-  -u, --template=template    The template code zip from vika or github
+  -u, --template=template    The template code zip from apitable or github
 
 EXAMPLE
   $ widget-cli init
   your widget: my-widget is successfully created, cd my-widget/ check it out!
 ```
 
-_See code: [lib/commands/init.js](https://github.com/vikadata/widget-cli/blob/v0.0.17/lib/commands/init.js)_
+_See code: [lib/commands/init.js](https://github.com/apitable/widget-cli/blob/v0.0.17/lib/commands/init.js)_
 
 ## `widget-cli list-release [PACKAGEID]`
 
@@ -112,7 +115,7 @@ ARGUMENTS
 
 OPTIONS
   -g, --global       Specify global widget package
-  -h, --host=host    Specifies the host of the server, such as https://vika.cn
+  -h, --host=host    Specifies the host of the server, such as https://apitable.com
   -t, --token=token  Your API Token
 
 EXAMPLE
@@ -120,7 +123,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/list-release.js](https://github.com/vikadata/widget-cli/blob/v0.0.17/lib/commands/list-release.js)_
+_See code: [lib/commands/list-release.js](https://github.com/apitable/widget-cli/blob/v0.0.17/lib/commands/list-release.js)_
 
 ## `widget-cli release`
 
@@ -131,7 +134,7 @@ USAGE
   $ widget-cli release
 
 OPTIONS
-  -h, --host=host        Specifies the host of the server, such as https://vika.cn
+  -h, --host=host        Specifies the host of the server, such as https://apitable.com
   -t, --token=token      Your API Token
   -v, --version=version  Specifies the version of the project
   --ci                   Run in CI mode, no version prompt
@@ -141,7 +144,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/release.js](https://github.com/vikadata/widget-cli/blob/v0.0.17/lib/commands/release.js)_
+_See code: [lib/commands/release.js](https://github.com/apitable/widget-cli/blob/v0.0.17/lib/commands/release.js)_
 
 ## `widget-cli rollback [PACKAGEID] [VERSION]`
 
@@ -157,7 +160,7 @@ ARGUMENTS
 
 OPTIONS
   -g, --global       Specify global widget package
-  -h, --host=host    Specifies the host of the server, such as https://vika.cn
+  -h, --host=host    Specifies the host of the server, such as https://apitable.com
   -t, --token=token  Your API Token
 
 EXAMPLE
@@ -165,7 +168,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/rollback.js](https://github.com/vikadata/widget-cli/blob/v0.0.17/lib/commands/rollback.js)_
+_See code: [lib/commands/rollback.js](https://github.com/apitable/widget-cli/blob/v0.0.17/lib/commands/rollback.js)_
 
 ## `widget-cli start`
 
@@ -185,7 +188,7 @@ EXAMPLE
   Compiling...
 ```
 
-_See code: [lib/commands/start.js](https://github.com/vikadata/widget-cli/blob/v0.0.17/lib/commands/start.js)_
+_See code: [lib/commands/start.js](https://github.com/apitable/widget-cli/blob/v0.0.17/lib/commands/start.js)_
 
 ## `widget-cli submit`
 
@@ -196,7 +199,7 @@ USAGE
   $ widget-cli submit
 
 OPTIONS
-  -h, --host=host        Specifies the host of the server, such as https://vika.cn
+  -h, --host=host        Specifies the host of the server, such as https://apitable.com
   -t, --token=token      Your API Token
   -v, --version=version  Specifies the version of the project
   --ci                   Run in CI mode, no prompt
@@ -206,7 +209,7 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/submit.js](https://github.com/vikadata/widget-cli/blob/v0.0.17/lib/commands/submit.js)_
+_See code: [lib/commands/submit.js](https://github.com/apitable/widget-cli/blob/v0.0.17/lib/commands/submit.js)_
 
 ## `widget-cli unpublish [PACKAGEID]`
 
@@ -221,7 +224,7 @@ ARGUMENTS
 
 OPTIONS
   -g, --global       Specify global widget package
-  -h, --host=host    Specifies the host of the server, such as https://vika.cn
+  -h, --host=host    Specifies the host of the server, such as https://apitable.com
   -t, --token=token  Your API Token
   --noConfirm        Do not show confirm
 
@@ -230,5 +233,5 @@ EXAMPLE
   Succeed!
 ```
 
-_See code: [lib/commands/unpublish.js](https://github.com/vikadata/widget-cli/blob/v0.0.17/lib/commands/unpublish.js)_
+_See code: [lib/commands/unpublish.js](https://github.com/apitable/widget-cli/blob/v0.0.17/lib/commands/unpublish.js)_
 <!-- commandsstop -->

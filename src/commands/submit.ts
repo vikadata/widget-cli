@@ -26,7 +26,7 @@ Succeed!
   ];
 
   static flags = {
-    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://vika.cn' }),
+    host: flags.string({ char: 'h', description: 'Specifies the host of the server, such as https://apitable.com' }),
     token: flags.string({ char: 't', description: 'Your API Token' }),
     version: flags.string({ char: 'v', description: 'Specifies the version of the project' }),
     global: flags.boolean({ char: 'g', hidden: true, description: 'Release this widget package to global' }),
@@ -125,12 +125,12 @@ Succeed!
 
     this.log();
     this.log(chalk.yellowBright('=== Package Details ==='));
-    this.log(`name:                ${name['zh-CN'] || name['en-US']}`);
+    this.log(`name:                ${name['en-US']}`);
     this.log(`host:                ${host}`);
     this.log(`globalPackageId:     ${packageId}`);
     this.log(`version:             ${version}`);
     this.log(`releaseBundleSize:   ${readableFileSize(codeSize)}`);
-    this.log(`description          ${description['zh-CN'] || description['en-US']}`);
+    this.log(`description          ${description['en-US']}`);
     this.log(`icon                 ${icon}`);
     this.log(`cover                ${cover}`);
     this.log(`authorName           ${authorName}`);
