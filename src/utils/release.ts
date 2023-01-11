@@ -32,13 +32,16 @@ export const uploadPackageBundle = async(
   const { packageId, version } = option;
   const rootDir = findWidgetRootDir();
   const existFiles = Object.entries(assets).filter(([, value]) => Boolean(value));
-  const files = existFiles.map(([key, value]) => ({ name: key, entity: fse.createReadStream(path.resolve(rootDir, value)) }));
+  const files = existFiles.map(([key, value]) => ({
+    name: key, entity: fse.createReadStream(path.resolve(rootDir, value)), extName: path.extname(value)
+  }));
   cli.action.start('uploading bundle');
   const filesEntity = files.map(v => v.entity);
   const tokenArray = await uploadPackage({ auth, files: filesEntity, opt: {
     type: EFileType.PACKAGE,
     packageId,
-    version
+    version,
+    fileExtName: files.map(v => v.extName)
   }});
   cli.action.stop();
   const releaseCodeBundleTokenIndex = files.findIndex(v => v.name === 'releaseCodeBundle');

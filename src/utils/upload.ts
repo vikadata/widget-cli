@@ -98,14 +98,15 @@ export const uploadPackage = async({ auth, opt, files }: IUploadPackageProps) =>
   if (len > MAX_TOKEN_COUNT) {
     throw new Error('Maximum package config file limit exceeded');
   }
-  const { packageId, type, version } = opt;
+  const { packageId, type, version, fileExtName } = opt;
   const uploadAuth = await getUploadAuth({
     packageId,
     auth,
     opt: {
       count: len,
       fileType: type,
-      version
+      version,
+      fileExtName
     }
   });
   const allPromise: Promise<void>[] = [];
