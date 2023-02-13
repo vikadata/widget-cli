@@ -12,6 +12,7 @@ export interface IUploadAuthProps {
     count?: number;
     fileType: EFileType;
     filenames?: string[];
+    fileExtName?: string[];
   }
 }
 
@@ -45,5 +46,6 @@ export interface IUploadPackageProps {
     packageId: string;
     type: EFileType;
     version: string;
+    fileExtName?: string[];
   }
 }
